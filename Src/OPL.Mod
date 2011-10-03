@@ -2791,7 +2791,9 @@ ASSERT(~loaded(instr.dest));
 				ConstErr := TRUE
 			ELSE
 				IF OPO.csize >= LEN(OPO.constant) THEN
-					NEW(table, LEN(OPO.constant)*2);
+					len := LEN(OPO.constant)*2;
+					WHILE OPO.csize >= len DO len := len*2 END;
+					NEW(table, len);
 					SYSTEM.MOVE(SYSTEM.ADR(OPO.constant[0]), SYSTEM.ADR(table[0]), tab);
 					OPO.constant:=table
 				END;
