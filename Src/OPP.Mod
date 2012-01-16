@@ -95,7 +95,7 @@ MODULE OPP;	(** non-portable *)
 			mode: LONGINT; scope: OPT.Object; level: SHORTINT; node: OPT.Node; stream: OPS.TokenStream; next: FixPtr
 		END;
 		TypeFix = RECORD
-			pos: LONGINT; name: OPS.Name; scope: OPT.Object; level: SHORTINT;
+			pos: OPM.TextPos; name: OPS.Name; scope: OPT.Object; level: SHORTINT;
 		END;
 		ObjFixDesc = RECORD (TypeFix)  obj: OPT.Object  END;
 		StructFixDesc = RECORD (TypeFix)  typ: OPT.Struct  END;
@@ -244,13 +244,13 @@ MODULE OPP;	(** non-portable *)
 				IF p.mode = TProc THEN
 					OPT.FindField(p.name, typ.BaseTyp, fwd, TRUE);
 					IF (fwd # NIL) & (fwd.mode = TProc) THEN
-						OPM.errpos := p.conval.intval;
+						OPM.errpos := p.conval.errpos;
 						OPB.CheckParameters (p.link.link, fwd.link.link, FALSE);
 					END;
 					p.conval.intval := 0
 				ELSIF p.mode = Fld THEN
 					OPT.FindField(p.name, typ.BaseTyp, fwd, TRUE);
-					IF (fwd # NIL) THEN OPM.Mark(1, p.conval.intval) END;
+					IF (fwd # NIL) THEN OPM.Mark(1, p.conval.errpos) END;
 				END;
 				Traverse(p.right)
 			END
@@ -530,7 +530,7 @@ MODULE OPP;	(** non-portable *)
 	PROCEDURE RecordType(VAR procdec: OPT.Node; VAR typ, banned: OPT.Struct; VAR owner: OPT.Object);
 		VAR base: OPT.Object;
 			sysflag: SHORTINT;
-			c: LONGINT;
+			c: OPM.TextPos;
 			statseq: OPT.Node; lev: SHORTINT;
 	BEGIN
 		typ := OPT.NewStr(Comp, Record); typ^.BaseTyp := NIL;
@@ -588,7 +588,7 @@ MODULE OPP;	(** non-portable *)
 		ASSERT((statseq = NIL) OR (hasBody IN owner.conval.setval));		(*stat#NIL  ==> hasBody*)
 		IF (procdec # NIL) OR (hasBody IN owner.conval.setval) OR (statseq # NIL) THEN
 			OPB.Enter(CondNodes, statseq, owner); CondNodes^.link := procdec; procdec := CondNodes;
-			procdec^.conval := OPT.NewConst(); procdec^.conval^.intval := c;
+			procdec^.conval := OPT.NewConst(); procdec^.conval^.errpos := c;
 		END;
 		level := lev; OPT.CloseScope;
 	END RecordType;
@@ -620,7 +620,7 @@ MODULE OPP;	(** non-portable *)
 			END;
 			OPT.topScope:=owner;
 			y:=OPB.NewLeaf(dim); OPB.Assign(y, exp); (* generate assignment instructions *)
-			y^.conval := OPT.NewConst(); y^.conval^.intval := OPM.errpos;
+			y^.conval := OPT.NewConst(); y^.conval^.errpos := OPM.errpos;
 			OPB.CodeInsert(y);
 			RETURN dim;
 		END HiddenVar;
@@ -1010,9 +1010,9 @@ MODULE OPP;	(** non-portable *)
 				OPB.StPar0(x, awaitfn); OPB.Return(x, proc);
 			END;
 			OPT.CloseScope; DEC(level);
-			x.conval := OPT.NewConst(); x^.conval.intval := OPM.errpos;
+			x.conval := OPT.NewConst(); x^.conval.errpos := OPM.errpos;
 			cond := NIL; OPB.Enter(cond, x, proc); cond.link := CondNodes; CondNodes := cond;
-			cond.conval := OPT.NewConst(); cond^.conval.intval := OPM.errpos;
+			cond.conval := OPT.NewConst(); cond^.conval.errpos := OPM.errpos;
 		(* Create parameters for the await call *)
 			x := OPB.NewLeaf(proc);
 			x.link := OPB.NewLeaf(self);	(* Always push SELF *)
@@ -1119,7 +1119,7 @@ MODULE OPP;	(** non-portable *)
 				x^.subcl := 2;	(* inlined proc *)
 			ELSE
 				x := NIL; glueCode := NIL;
-				c := OPT.NewConst(); c^.intval := OPM.errpos;
+				c := OPT.NewConst(); c^.errpos := OPM.errpos;
 				WHILE fpar # NIL DO
 					IF fpar^.mode = VarPar THEN
 						fpar^.link2 := apar^.obj;
@@ -1400,14 +1400,14 @@ MODULE OPP;	(** non-portable *)
 		END GetParam;
 
 		PROCEDURE Body;
-			VAR c, n: LONGINT; ext: OPT.ConstExt; procdec, statseq: OPT.Node;
+			VAR c: OPM.TextPos; n: LONGINT; ext: OPT.ConstExt; procdec, statseq: OPT.Node;
 		BEGIN
 			c := OPM.errpos; INCL(proc.conval.setval, hasBody);
 			IF (sym = number) THEN		(* old style inline *)
 				IF ~OPT.SYSimported THEN err(135) END ;
 				statseq := OPT.NewNode(Ncode); statseq.conval := OPT.NewConst(); procdec := NIL;
 				n := 0; ext := OPT.NewExt(); statseq.conval.ext := ext;
-				OPB.Construct (Nassembler, statseq, NIL); statseq.conval := OPT.NewConst(); statseq.conval.intval := c;
+				OPB.Construct (Nassembler, statseq, NIL); statseq.conval := OPT.NewConst(); statseq.conval.errpos := c;
 				statseq.obj := proc;
 				INCL (proc.conval.setval, asmProc); proc.conval.ext := ext;
 				LOOP
@@ -1440,7 +1440,7 @@ MODULE OPP;	(** non-portable *)
 				proc.code := statseq; procdec := NIL
 			ELSE
 				OPB.Enter(procdec, statseq, proc);
-				procdec.conval := OPT.NewConst(); procdec.conval.intval := c;
+				procdec.conval := OPT.NewConst(); procdec.conval.errpos := c;
 			END;
 			x := procdec;
 		END Body;
@@ -1553,7 +1553,7 @@ MODULE OPP;	(** non-portable *)
 			proc.conval := OPT.NewConst(); proc.conval.setval := flags;
 			IF IsObjectScope() & (selfrec.BaseTyp # NIL) & selfrec.BaseTyp.incomplete THEN
 				SetFlags(OPT.topScope.link, {checkOverwriting});
-				proc.conval.intval := OPM.errpos
+				proc.conval.errpos := OPM.errpos;
 			END;
 
 			(* general limitations and link setup *)
@@ -1562,7 +1562,7 @@ MODULE OPP;	(** non-portable *)
 
 			(* parse params+body *)
 			OPT.topScope := scope;
-			INC(level); OPT.OpenScope(level, proc); OPT.topScope.adr := OPM.errpos;
+			INC(level); OPT.OpenScope(level, proc); OPT.topScope.errpos := OPM.errpos;
 			OPT.topScope.conval := OPT.NewConst();
 			GetParam;
 			IF ~forward THEN Body END;
@@ -1757,7 +1757,7 @@ OPM.LogWStr("  failed");*)
 
 	PROCEDURE StatSeq(VAR stat: OPT.Node);
 		VAR fpar, id, t, obj, owner, op: OPT.Object; typ, idtyp: OPT.Struct; sysflag, e: BOOLEAN;
-				x1, x2, s, x, y, z, apar, last, lastif: OPT.Node; pos: LONGINT;
+				x1, x2, s, x, y, z, apar, last, lastif: OPT.Node; pos: OPM.TextPos;
 				ts: OPS.TokenStream;
 
 		PROCEDURE CasePart(VAR x: OPT.Node);
@@ -1791,7 +1791,7 @@ OPM.LogWStr("  failed");*)
 
 		PROCEDURE SetPos(x: OPT.Node);
 		BEGIN
-			x^.conval := OPT.NewConst(); x^.conval^.intval := pos
+			x^.conval := OPT.NewConst(); x^.conval^.errpos := pos
 		END SetPos;
 
 	BEGIN stat := NIL; last := NIL; UndefFlag := FALSE;
@@ -2026,7 +2026,7 @@ OPM.LogWStr("  failed");*)
 	END StatSeq;
 
 	PROCEDURE StatBlock(VAR statseq: OPT.Node;  local: BOOLEAN);	(* BEGIN [BlockMode] StatSeq END *)
-	VAR  lock, oldScopeLock: BOOLEAN; pos: LONGINT; owner: OPT.Object;
+	VAR  lock, oldScopeLock: BOOLEAN; pos: OPM.TextPos; owner: OPT.Object;
 	BEGIN
 		(* BEGIN already parsed *)
 		owner := OPT.topScope.link; pos := OPM.errpos;
@@ -2038,7 +2038,7 @@ OPM.LogWStr("  failed");*)
 		IF lock THEN
 			OPB.Lock(statseq, GetSelf(), TRUE);
 			statseq.conval := OPT.NewConst();
-			statseq.conval.intval := pos
+			statseq.conval.errpos := pos;
 		END
 	END StatBlock;
 
@@ -2064,7 +2064,7 @@ OPM.LogWStr("  failed");*)
 		x := OPB.NewLeaf(obj);
 		OPB.StPar0(x, m);
 		OPB.StFct(x, m, 1);
-		x^.conval := OPT.NewConst(); x^.conval^.intval := OPM.errpos;
+		x^.conval := OPT.NewConst(); x^.conval^.errpos := OPM.errpos;
 		x.link := statseq;  statseq := x
 	END AddTraceCode;
 
@@ -2072,7 +2072,7 @@ OPM.LogWStr("  failed");*)
 		VAR typ: OPT.Struct;
 			owner, obj, first, last, dmy: OPT.Object;
 			x, lastdec: OPT.Node;
-			pos: LONGINT; vars, proc: BOOLEAN;
+			pos: OPM.TextPos; vars, proc: BOOLEAN;
 
 	BEGIN first := NIL; last := NIL;
 		procdec := NIL; lastdec := NIL; proc := FALSE;  vars := FALSE;
@@ -2155,7 +2155,7 @@ OPM.LogWStr("  failed");*)
 								CheckSysFlag(obj.sysflag, 0, {0})
 							END;
 							IF IsObjectScope() THEN
-								obj^.mode := Fld; obj.conval := OPT.NewConst(); obj.conval.intval := OPM.errpos;
+								obj^.mode := Fld; obj.conval := OPT.NewConst(); obj.conval.errpos := OPM.errpos;
 								OPT.FindField (obj.name, OPT.topScope.link.typ.BaseTyp, dmy, TRUE);
 							ELSE
 								obj^.mode := Var; obj^.leaf := obj^.vis = internal
@@ -2206,7 +2206,7 @@ OPM.LogWStr("  failed");*)
 			END;
 			IF (sym < const) OR (sym > procedure) THEN EXIT END ;
 		END ;	(* LOOP *)
-		OPT.topScope^.adr := OPM.errpos;
+		OPT.topScope^.errpos := OPM.errpos;
 		IF IsObjectScope() & (last = NIL) THEN
 			OPT.topScope^.link^.typ^.link := OPT.topScope^.right
 		END;
@@ -2220,7 +2220,7 @@ OPM.LogWStr("  failed");*)
 				IF typ.ptr = NIL THEN  err(249)  END;
 				ASSERT(typ # NIL);
 				OPT.Insert(HiddenSelf, obj); obj^.mode := VarPar; obj^.typ := typ;
-				obj^.adr := OPM.errpos; obj.mnolev := 1 (*level*);
+				obj^.errpos := OPM.errpos; obj.mnolev := 1 (*level*);
 				obj^.link := NIL;
 				owner^.link := obj;	(* set parameter list *)
 				IF owner^.typ^.link = NIL THEN owner^.typ^.link := obj END
@@ -2238,7 +2238,7 @@ OPM.LogWStr("  failed");*)
 			pos := OPM.errpos; SetFlags(owner, {asmProc});
 			OPA.Assemble(statseq,  owner.vis # internal, owner.mode = CProc);
 			IF statseq # NIL THEN
-				statseq^.conval := OPT.NewConst(); statseq^.conval^.intval := pos;
+				statseq^.conval := OPT.NewConst(); statseq^.conval^.errpos := pos;
 				statseq.obj := owner
 			END;
 			OPS.Get(sym)
@@ -2279,7 +2279,7 @@ OPM.LogWStr("  failed");*)
 	PROCEDURE Module*(VAR prog: OPT.Node; VAR modName: OPS.Name);
 		VAR shortName, impName, aliasName: OPS.Name;
 				procdec, statseq: OPT.Node;
-				c: LONGINT;
+				c: OPM.TextPos;
 				mod: OPT.Object;
 	BEGIN
 		ptrToRec := NIL;
@@ -2330,7 +2330,7 @@ OPM.LogWStr("  failed");*)
 				RecInit := NIL; lastRecInit := NIL;
 				Block(procdec, statseq);
 				OPB.Enter(procdec, statseq, NIL); prog := procdec;
-				prog^.conval := OPT.NewConst(); prog^.conval^.intval := c;
+				prog^.conval := OPT.NewConst(); prog^.conval^.errpos := c;
 				IF sym = ident THEN
 					IF OPS.name # shortName THEN err(4) END ;
 					OPS.Get(sym)

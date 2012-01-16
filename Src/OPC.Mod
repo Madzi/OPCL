@@ -201,10 +201,10 @@ Intel i386 :
 		OPL.Instr [pc].pc := OPL.Nil; OPL.Instr [pc].reg := OPL.Nil; OPL.Instr [pc].abs := FALSE
 	END InitInstr;
 
-	PROCEDURE NewStat* (textPos: LONGINT);
+	PROCEDURE NewStat* (textPos: OPM.TextPos);
 	BEGIN
 		InitInstr (newStat, 0, 0, NIL);
-		OPL.Instr [pc].src1 := textPos;
+		OPL.Instr [pc].errpos := textPos;
 		OPM.errpos := textPos;
 		INC (pc)
 	END NewStat;

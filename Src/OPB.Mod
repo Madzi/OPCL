@@ -1562,8 +1562,8 @@ MODULE OPB;	(** non-portable *)
 				IF (f IN intSet) & (x^.class = Nconst) THEN
 					IF (OPM.MinHaltNr <= x^.conval^.intval) & (x^.conval^.intval <= OPM.MaxHaltNr) THEN
 						BindNodes(Ntrap, OPT.notyp, x, x);
-						x^.conval := OPT.NewConst(); x^.conval^.intval := OPM.errpos;
-						Construct(Nif, p, x); p^.conval := OPT.NewConst(); p^.conval^.intval := OPM.errpos;
+						x^.conval := OPT.NewConst(); x^.conval^.errpos := OPM.errpos;
+						Construct(Nif, p, x); p^.conval := OPT.NewConst(); p^.conval^.errpos := OPM.errpos;
 						Construct(Nifelse, p, NIL); OptIf(p);
 						IF p = NIL THEN	(* ASSERT(TRUE) *)
 						ELSIF p^.class = Ntrap THEN err(99)
@@ -1660,22 +1660,22 @@ MODULE OPB;	(** non-portable *)
 			IF AwaitIF THEN	(*Await Call: IF ~cond THEN AWAIT(cond) END*)
 				x := p;
 				BindNodes(Nassign, OPT.notyp, x, x^.link); x^.left^.link := NIL; x.subcl := awaitfn;
-				x^.conval := OPT.NewConst(); x^.conval^.intval := OPM.errpos;
+				x^.conval := OPT.NewConst(); x^.conval^.errpos := OPM.errpos;
 					(*Create the condition*)
 				PrepCall(p, obj);  Call(p, NIL, obj);
 				MOp(not, p);
 					(*build if*)
-				Construct(Nif, p, x); p^.conval := OPT.NewConst(); p^.conval^.intval := OPM.errpos;
+				Construct(Nif, p, x); p^.conval := OPT.NewConst(); p^.conval^.errpos := OPM.errpos;
 				Construct(Nifelse, p, NIL); OptIf(p)
 			ELSE
 				BindNodes(Nassign, OPT.notyp, p, p^.link); p^.left^.link := NIL; p.subcl := awaitfn;
-				p^.conval := OPT.NewConst(); p^.conval^.intval := OPM.errpos
+				p^.conval := OPT.NewConst(); p^.conval^.errpos := OPM.errpos;
 			END
 		ELSIF fctno = assertfn THEN
 			IF parno = 1 THEN x := NIL;
 				BindNodes(Ntrap, OPT.notyp, x, NewIntConst(AssertTrap));
-				x^.conval := OPT.NewConst(); x^.conval^.intval := OPM.errpos;
-				Construct(Nif, p, x); p^.conval := OPT.NewConst(); p^.conval^.intval := OPM.errpos;
+				x^.conval := OPT.NewConst(); x^.conval^.errpos := OPM.errpos;
+				Construct(Nif, p, x); p^.conval := OPT.NewConst(); p^.conval^.errpos := OPM.errpos;
 				Construct(Nifelse, p, NIL); OptIf(p);
 				IF p = NIL THEN	(* ASSERT(TRUE) *)
 				ELSIF p^.class = Ntrap THEN err(99)
@@ -1816,7 +1816,7 @@ MODULE OPB;	(** non-portable *)
 		IF (old.class = 29) & (old.conval.intval = 0) THEN	(*imported inline, set errpos*)
 			new.conval := OPT.NewConst();
 			new.conval^ := old.conval^;
-			new.conval.intval := OPM.errpos
+			new.conval.errpos := OPM.errpos;
 		END;
 		CopyAndSubst(new^.left, old^.left); CopyAndSubst(new^.right, old^.right);
 		CopyAndSubst(new^.link, old^.link)
@@ -1894,7 +1894,7 @@ MODULE OPB;	(** non-portable *)
 		VAR node: OPT.Node;
 	BEGIN
 		node := OPT.NewNode(Ninittd); node^.typ := typ;
-		node^.conval := OPT.NewConst(); node^.conval^.intval := typ^.txtpos;
+		node^.conval := OPT.NewConst(); node^.conval^.errpos := typ^.txtpos;
 		IF inittd = NIL THEN inittd := node ELSE last^.link := node END ;
 		last := node
 	END Inittd;

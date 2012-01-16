@@ -7,7 +7,9 @@ ETH Zentrum, CH-8092 Zuerich. Refer to the "General ETH Oberon System
 Source License" contract available at http://www.oberon.ethz.ch/
 
 Command line wrapper and 'readme' by Eugene Shcherbatyuk.
-Current maintainer: Alexander Iljin <ajsoft@yandex.ru>.
+Current maintainers:
+	Alexander Iljin <ajsoft [a] yandex . ru>
+	Oleg N. Cher <allot [a] bk . ru>
 Contributors:
 	Kemet (elbrusstudio —Œ¡¿ ¿ mail “Œ◊ ¿ ru)
 
@@ -43,6 +45,19 @@ application error. That is not an error indeed. That is unhandled
 exception caused by issuing HALT command within linker code.
 
 History
+
+23 Jan 2012, v0.3
+- Show line and column in errors messages (postpone errors also supported).
+  Now you can use Syn Text Editor - http://sourceforge.net/projects/syn/
+  with syntax scheme "Modula 3". Try this regular expression
+    line\s+$[LineNumber]\s+col\s+$[ColNumber]\s
+  for setting an error marker to necessary position.
+- Add MoveWindow sample application by Alexander Iljin.
+- Fix memory allocation bug in OPL.AllocCaseTab.
+  Add Test/TestAllocMemError.Mod that crashes compiler without this fix.
+  WARNING: this bug is present in official ETH Oberon 2.4, 2.5 and 2.6.
+- Add support '_' in identifiers.
+- GitHub hosting: https://github.com/Oleg-N-Cher/OPCL
 
 03 Dec 2010, v0.2
 - Add full sources, made compiler and linker self-compilable

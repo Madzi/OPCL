@@ -357,6 +357,7 @@ References:
 			scale*, reg*: SHORTINT;
 			op*: INTEGER;
 			dest*, src1*, src2*, inx*, pc*, hint*: LONGINT; (* pc: PC on the target machine, used for jumps *)
+			errpos*: OPM.TextPos;
 			link*, used*: INTEGER;
 			node*: OPT.Node;
 			abs*: BOOLEAN;	(* absolute address, should not be fixed. Def = FALSE. *)		(* GetPut *)
@@ -2450,7 +2451,7 @@ ASSERT(~loaded(instr.dest));
 			ELSIF (fix.obj.linkadr <= MAX(SHORTINT)) & (fix.obj.linkadr >= MIN(SHORTINT)) THEN
 				OPO.PutByteAt(pc + fix.conval.intval, SHORT(SHORT(fix.obj.linkadr)))
 			ELSE
-				OPM.Mark(600,SHORT(fix.conval.intval2))
+				OPM.Mark(600,fix.conval.errpos);
 			END;
 			fix := fix.link
 		END
@@ -2518,7 +2519,7 @@ ASSERT(~loaded(instr.dest));
 				OPM.LogWNum(Instr[i].hint, 4);
 *)
 				CASE op OF
-					NewStat: OPM.errpos := Instr [i].src1;
+					NewStat: OPM.errpos := Instr [i].errpos;
 						IF map # NIL THEN MarkPos END;
 				  | Ld, Lea, Ldbdw, Ldwdw, Ldbw, Ldbdwu, Ldwdwu, Ldbwu, PUTreg: Load (Instr [i])
 				  | LdProc, LdXProc: LoadProc (Instr [i])

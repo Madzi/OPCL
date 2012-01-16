@@ -294,7 +294,7 @@ MODULE O2ETHCLC;
 		OPP.Module(p, modName);
 		IF OPM.noerr THEN
 			OPL.Init;
-			OPM.errpos := 0;
+			OPM.TextPosInit(OPM.errpos, 0);
 			OPM.Begin(modName);
 			IF OPM.noerr THEN
 				OPT.Export(modName, newSF, extSF);
@@ -303,7 +303,7 @@ MODULE O2ETHCLC;
 				ELSIF extSF THEN OPM.LogWStr(" extended symbol file")
 				END;
 				IF OPM.noerr THEN
-					OPM.errpos := 0;
+					OPM.TextPosInit(OPM.errpos, 0);
 					OPC.Init;
 					OPV.Module(p);
 					IF OPM.noerr THEN

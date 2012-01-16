@@ -93,7 +93,8 @@ MODULE OPT;	(* non-portable *)
 			intval*: LONGINT;	(* constant value or adr, proc par size, text position or least case label *)
 			intval2*: LONGINT;	(* string length, proc var size or larger case label *)
 			setval*: SET;	(* constant value, procedure body present or "ELSE" present in case *)
-			realval*: LONGREAL	(* real or longreal constant value *)
+			realval*: LONGREAL;	(* real or longreal constant value *)
+			errpos*: OPM.TextPos;	(* current text position in source file *)
 		END;
 
 		ObjDesc* = RECORD
@@ -110,7 +111,7 @@ MODULE OPT;	(* non-portable *)
 			conval*: Const;
 			adr*, linkadr*: LONGINT;
 			nxtobj*, sibling*: Object; par: BOOLEAN; inited*, used*: BOOLEAN; fp*: LONGINT; history*: SHORTINT;
-			txtpos*: LONGINT;
+			txtpos*, errpos*: OPM.TextPos;
 			flag*: SET;
 		END ;
 
@@ -136,7 +137,7 @@ MODULE OPT;	(* non-portable *)
 		StrDesc* = RECORD
 			form*, comp*, mno*, extlev*: SHORTINT;
 			ref*: INTEGER;  align*, sysflag*: SHORTINT;
-			rectest*, n*, size*, tdadr*, offset*, txtpos*, txtpos2*: LONGINT;
+			rectest*, n*, size*, tdadr*, offset*: LONGINT; txtpos*, txtpos2*: OPM.TextPos;
 			BaseTyp*: Struct;
 			link*, strobj*: Object; fpdone*, sref*, oref*: INTEGER;
 			pvused*, pbused*: BOOLEAN; fp*, pvfp*, pbfp*: LONGINT;
@@ -1368,7 +1369,7 @@ MODULE OPT;	(* non-portable *)
 
 BEGIN
 	topScope:=NIL; NEW(modules, DefMaxImport); NEW(emodules, DefMaxImport);
-	OpenScope(0, NIL); OPM.errpos:=0;
+	OpenScope(0, NIL); OPM.TextPosInit(OPM.errpos, 0);
 
 	InitStruct(undftyp, Undef, 0);
 	InitStruct(notyp, NoTyp, SFtypNoTyp); InitStruct(stringtyp, String, SFtypString); InitStruct(niltyp, NilTyp, SFtypNilTyp);

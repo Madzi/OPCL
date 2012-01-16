@@ -17,7 +17,7 @@ MODULE OPS;	(** non-portable *)
 
 		GetProc* = PROCEDURE (VAR sym: SHORTINT);
 
-		Token = POINTER TO RECORD	pos: LONGINT; sym: SHORTINT; next: Token	END;
+		Token = POINTER TO RECORD	pos: OPM.TextPos; sym: SHORTINT; next: Token	END;
 		IntToken = POINTER TO RECORD (Token)	intval: LONGINT; typ: INTEGER	END;
 		RealToken = POINTER TO RECORD (Token)	realval: REAL	END;
 		LRealToken = POINTER TO RECORD (Token)	lrlval: LONGREAL	END;
@@ -307,7 +307,7 @@ MODULE OPS;	(** non-portable *)
 			ELSE OPM.Get(ch)
 			END
 		END ;
-		OPM.errpos := OPM.curpos-1;
+		OPM.TextPosPrev(OPM.errpos, OPM.curpos);
 		CASE ch OF   (* ch > " " *)
 			| 22X, 27X  : Str(s)
 			| "#"  : s := neq; name:="#"; OPM.Get(ch)

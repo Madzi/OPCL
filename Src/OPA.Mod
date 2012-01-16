@@ -127,6 +127,7 @@ MODULE OPA;	(** non-portable *)
 		ObjDesc = RECORD
 			typ: INTEGER;
 			val, size:  LONGINT;		(* if typ <0 => pos of first use of this label *)
+			errpos: OPM.TextPos;		(* starting position of the last instruction *)
 			name: Name;
 			left, right, next: Object;
 			fix: FixPnt;
@@ -163,7 +164,7 @@ VAR
 		ident: Name;		(* last identifier read *)
 		val: LONGINT;	  (* last value read *)
 		str: ARRAY MaxStrLen OF CHAR;
-		errpos: LONGINT;	(* starting position of the last instruction *)
+		errpos: OPM.TextPos;	(* starting position of the last instruction *)
 
 	(* Instruction nodes *)
 		first, last: OPT.Node;	(* first and last nodes in the instruction stream *)
@@ -361,7 +362,7 @@ VAR
 				NEW(ob1); COPY(name, ob1.name); ob1.typ := StFwdLabel;
 				ob1.left := NIL; ob1.right := NIL; ob1.fix := NIL; ob1.obj := NIL;
 				ob1.next := root.next; root.next := ob1;
-				ob1.val := OPM.errpos;
+				ob1.errpos := OPM.errpos;
 				IF d < 0 THEN ob0.left := ob1 ELSE ob0.right := ob1 END;
 			ELSIF name < ob1.name THEN d := -1; ob0 := ob1; ob1 := ob1.left
 			ELSIF name > ob1.name THEN d :=  1; ob0 := ob1; ob1 := ob1.right
@@ -454,7 +455,7 @@ VAR
 
 	PROCEDURE GetIdent(VAR name: Name);
 		VAR i: INTEGER;
-	BEGIN i := 0; OPM.errpos := OPM.curpos - 1;
+	BEGIN i := 0; OPM.TextPosPrev(OPM.errpos, OPM.curpos);
 		REPEAT
 			IF i < NameLen-1 THEN name[i] := OPS.ch; INC(i) END;
 			OPM.Get(OPS.ch)
@@ -749,7 +750,7 @@ VAR
 		END;
 		WHILE obj # NIL DO
 			IF obj.typ = StFwdLabel THEN
-				OPM.Mark(128, obj.val)	(* unsatisfied forward reference *)
+				OPM.Mark(128, obj.errpos)	(* unsatisfied forward reference *)
 			END;
 			obj := obj.next
 		END
@@ -768,7 +769,7 @@ VAR
 			IF export & inline THEN  OPM.err(517)  END;
 			x := OPT.NewNode(Nfixup);
 			x.obj := obj.obj; x.conval := OPT.NewConst();
-			x.conval.intval := pc; x.conval.intval2 := OPM.errpos;
+			x.conval.intval := pc; x.conval.errpos := OPM.errpos;
 			x.link := fixlist; fixlist := x
 		ELSE
 			OPM.err(607)
@@ -793,7 +794,7 @@ PROCEDURE NewNode;
 BEGIN
 	x := OPT.NewNode(Ncode); x.conval := OPT.NewConst();
 	x.conval.ext := OPT.NewExt(); x.conval.ext[0] := 0X;	(* Instr length *)
-	x.conval.intval := OPM.errpos;
+	x.conval.errpos := OPM.errpos;
 	OPB.Link(first, last, x)
 END NewNode;
 

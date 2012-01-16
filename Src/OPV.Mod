@@ -183,7 +183,7 @@ Statements
 					IF typ.comp = Record THEN
 						p := typ.link;
 						WHILE (p # NIL) & (p.mode = Fld) DO
-							IF ~RecursionTest (p.typ, 2) THEN OPM.errpos := p.conval.intval; OPM.err(58); p.typ := OPT.undftyp END;
+							IF ~RecursionTest (p.typ, 2) THEN OPM.errpos := p.conval.errpos; OPM.err(58); p.typ := OPT.undftyp END;
 							p := p.link
 						END
 					END
@@ -387,12 +387,12 @@ Statements
 	END ArgSize;
 
 	PROCEDURE ProcSize0(obj: OPT.Object; firstpass: BOOLEAN);
-		VAR psize, oldPos, entryNr: LONGINT;
+		VAR psize, entryNr: LONGINT; oldPos: OPM.TextPos;
 	BEGIN
 		ASSERT (obj.prio # 127);
 		oldPos := OPM.errpos;
-		IF obj.scope # NIL THEN  OPM.errpos := obj^.scope^.adr;
-		ELSE OPM.errpos := 0
+		IF obj.scope # NIL THEN  OPM.errpos := obj^.scope^.errpos;
+		ELSE OPM.TextPosInit(OPM.errpos, 0);
 		END;
 		TypSize(obj.typ, TRUE);
 		IF ((obj^.vis # internal) = firstpass) OR (obj^.mode IN {TProc, Typ}) THEN
@@ -619,7 +619,7 @@ END TypeName;
 	PROCEDURE AdrAndSize* (topScope: OPT.Object);
 	VAR i: INTEGER; dsize: LONGINT;
 	BEGIN
-		OPM.errpos := topScope^.adr;	(* text position of scope used if error *)
+		OPM.errpos := topScope^.errpos;	(* text position of scope used if error *)
 		OPO.dsize := 0;
 		i := 1;
 		WHILE i < OPT.nofmod DO
@@ -963,7 +963,7 @@ END TypeName;
 		VAR x: OPC.Item;
 	BEGIN
 		LOOP
-			OPM.errpos := n.conval.intval;
+			OPM.errpos := n.conval.errpos;
 			Expression (n.left, x, selfForUnlock);  OPC.Jncc (x, Lcfix, n); Statement (n.right, selfForUnlock);
 			IF n.link = NIL THEN EXIT END;
 			OPC.Jmp (Lfix, n); OPC.FixLink (Lcfix);
@@ -1032,7 +1032,7 @@ END TypeName;
 			res: INTEGER;
 	BEGIN
 		WHILE ~OPO.CodeErr & (n # NIL) DO
-			OPC.NewStat (n.conval.intval);
+			OPC.NewStat (n.conval.errpos);
 			CASE n.class OF
 				Nenter:
 					IF n.obj = NIL THEN (* enter module *)

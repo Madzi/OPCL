@@ -2,3 +2,6 @@
 *.Obj
 *.EXE
 *.DLL
+.gitignore
+Src/+Clear.cmd
++Git.bat

@@ -118,12 +118,16 @@ MODULE OPM;	(** non-portable *)
 
 		DefOpt* = {inxchk, typchk, ptrinit, fullstackinit, assert};
 
+	TYPE
+		TextPos* = RECORD
+			pos, line, col, prevcol: LONGINT;	(* current text position, line, column and previous column in source file *)
+		END;
+
 	VAR
 		MinReal*, MaxReal*: REAL;
 		MinLReal*, MaxLReal*: LONGREAL;
 		noerr*: BOOLEAN;	(* no error found until now *)
-		curpos*, errpos*: LONGINT;	(* character and error position in source file *)
-		line, col: LONGINT;	(* current line and column in source file *)
+		curpos*, errpos*: TextPos;	(* character and error position in source file *)
 		breakpos*: LONGINT;	(* set by Mark *)
 		breakpc*: LONGINT;	(*set by OPV.Init*)
 		errors: ARRAY NumErrors DIV SetLen OF SET;
@@ -150,11 +154,20 @@ MODULE OPM;	(** non-portable *)
 		oldSymF, newSymF, ObjF, RefF, ModF: Files.Rider;
 		RefFile, ObjFile, ModFile, oldSymFile, newSymFile: Files.File;
 
+	PROCEDURE TextPosInit*(VAR txt: TextPos; pos: LONGINT);
+	BEGIN txt.line := 1; txt.col := 0; txt.prevcol := 0; txt.pos := pos;
+	END TextPosInit;
+
+	PROCEDURE TextPosPrev*(VAR dest: TextPos; src: TextPos);
+	BEGIN dest.pos := src.pos - 1; dest.col := src.prevcol;
+		dest.line := src.line; IF src.col = 0 THEN DEC(src.line) END;
+		dest.prevcol := src.prevcol; IF dest.prevcol > 0 THEN DEC(dest.prevcol) END;
+	END TextPosPrev;
+
 	PROCEDURE Init*(opt: SET; source: Texts.Reader; log: Texts.Text);
 		VAR i: SHORTINT;
 	BEGIN inR := source; Log := log; options := opt;
-		noerr := TRUE; curpos := Texts.Pos(inR); errpos := curpos; lastpos := curpos-10;
-		line := 1; col := 0;
+		noerr := TRUE; TextPosInit(curpos, Texts.Pos(inR)); errpos := curpos; lastpos := curpos.pos-10;
 		FOR i := 0 TO NumErrors DIV SetLen - 1 DO errors[i] := {} END;
 		Kernel.GC()
 	END Init;
@@ -171,12 +184,12 @@ MODULE OPM;	(** non-portable *)
 		(* System3 get: skip embedded objects *)
 		(*REPEAT*)
 			prevch := ch;
-			Texts.Read(inR, ch); INC(curpos);
-			CASE ch OF (* supported 0DX (Oberon), 0AX (UNIX), 0DX+0AX (Windows) *)
-			| 0DX: INC(line); col := 0 (* the Oberon end of line character *)
-			| 0AX: IF prevch # 0DX THEN INC(line); col := 0 END (* the UNIX end of line character *)
+			Texts.Read(inR, ch); INC(curpos.pos);
+			CASE ch OF	(* supported 0DX (Oberon), 0AX (UNIX), 0DX+0AX (Windows) *)
+			| 0DX: INC(curpos.line); curpos.prevcol := curpos.col; curpos.col := 0;	(* the Oberon end of line character *)
+			| 0AX: IF prevch # 0DX THEN INC(curpos.line); curpos.prevcol := curpos.col; curpos.col := 0 END;	(* the UNIX end of line character *)
 			ELSE
-				INC(col);
+				curpos.prevcol := curpos.col; INC(curpos.col);
 			END;
 		(*UNTIL inR.eot OR ((inR.lib # NIL) & (inR.lib IS Fonts.Font))*)
 	END Get;
@@ -281,16 +294,17 @@ MODULE OPM;	(** non-portable *)
 		END
 	END ErrorMsg;
 
-	PROCEDURE Mark*(n: INTEGER; pos: LONGINT);
+	PROCEDURE Mark*(n: INTEGER; pos: TextPos);
 	BEGIN
 		IF n >= 0 THEN
 			noerr := FALSE;
-			IF (pos < lastpos) OR (lastpos + 9 < pos) OR (n>=450) & (n<=460) OR (n=155) THEN lastpos := pos;
+			IF (pos.pos < lastpos) OR (lastpos + 9 < pos.pos) OR (n>=450) & (n<=460) OR (n=155) THEN lastpos := pos.pos;
 				LogWLn; LogW(9X); LogW(9X);
-				IF (n<450) OR (n>460) THEN
-					LogWStr("line"); LogWNum(line, 7);
-					IF col # 0 THEN LogWStr("  col"); LogWNum(col, 5) END;
-					IF n = 255 THEN LogWStr("  pc "); LogWHex(breakpc); breakpos := pos
+				IF (n<450) OR (n>460) THEN LogWStr("line");
+					IF pos.col # 0 THEN LogWNum(pos.line, 7); LogWStr("  col"); LogWNum(pos.col, 5);
+					ELSE LogWNum(pos.line - 1, 7); LogWStr("  col"); LogWNum(pos.prevcol, 5);
+					END;
+					IF n = 255 THEN LogWStr("  pc "); LogWHex(breakpc); breakpos := pos.pos
 					ELSIF n = 254 THEN LogWStr("  pc not found")
 					ELSE LogWStr("  err"); LogWNum(n, 4); ErrorMsg(n)
 					END
@@ -302,8 +316,10 @@ MODULE OPM;	(** non-portable *)
 				END
 			END
 		ELSIF warning IN options THEN
-			LogWLn; LogW(9X); LogW(9X); LogWStr("line"); LogWNum(line, 7);
-			IF col # 0 THEN LogWStr("  col"); LogWNum(col, 5) END;
+			LogWLn; LogW(9X); LogW(9X); LogWStr("line");
+			IF pos.col # 0 THEN LogWNum(pos.line, 7); LogWStr("  col"); LogWNum(pos.col, 5);
+			ELSE LogWNum(pos.line - 1, 7); LogWStr("  col"); LogWNum(pos.prevcol, 5);
+			END;
 			LogWStr("  warning"); LogWNum(-n, 4);
 			ErrorMsg(-n)
 		END
