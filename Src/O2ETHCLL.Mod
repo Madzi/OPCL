@@ -9,7 +9,7 @@
 
 MODULE O2ETHCLL; (** non-portable / source: Win32.PELinker.Mod *)	(* ejz *)
 	IMPORT SYSTEM, Kernel32, FileDir, Files, Modules, Exceptions, Strings,
-		Dates, Texts, BootLink, Console, CmdLine;
+		Dates, Texts, BootLinker, Console, CmdLine;
 
 	CONST
 		ImageDosSignature = 05A4DH; (* MZ *)
@@ -56,7 +56,7 @@ MODULE O2ETHCLL; (** non-portable / source: Win32.PELinker.Mod *)	(* ejz *)
 		ImageRelBasedSection = 6;
 		ImageRelBasedRel32 = 7;
 
-		RtCursor = 1; RtIcon = 3;
+		RtCursor = 1; RtIcon = 3; RtRcData = 10;
 		RtGroupCursor = RtCursor+11; RtGroupIcon = RtIcon+11;
 		RtVersion = 16;
 
@@ -322,6 +322,7 @@ MODULE O2ETHCLL; (** non-portable / source: Win32.PELinker.Mod *)	(* ejz *)
 		icons: IconList;
 		cursors: CursorList;
 		relocs: ARRAY MaxRelocs OF LONGINT; nRelocs: LONGINT;
+		extension*: ARRAY 8 OF CHAR;
 		dependencyListOnly: BOOLEAN; (* When dependencyListOnly = TRUE, only the
 			list of files required for linking is output. Modules are listed in
 			the order of their link order, i.e. as listed in the Link-file. *)
@@ -528,6 +529,7 @@ MODULE O2ETHCLL; (** non-portable / source: Win32.PELinker.Mod *)	(* ejz *)
 	BEGIN
 		version := NIL; imports := NIL; exports := NIL; exportOrds := NIL; modules := NIL;
 		icons := NIL; cursors := NIL;
+
 	END Clean;
 
 	PROCEDURE Init();
@@ -835,7 +837,7 @@ MODULE O2ETHCLL; (** non-portable / source: Win32.PELinker.Mod *)	(* ejz *)
 	END AddFileReloc;
 
 	PROCEDURE GetObjAdr(objname: ARRAY OF CHAR; type: LONGINT): LONGINT;
-		VAR name: BootLink.Name; mod: BootLink.Module; adr, i, j: LONGINT;
+		VAR name: BootLinker.Name; mod: BootLinker.Module; adr, i, j: LONGINT;
 	BEGIN
 		i := 0;
 		WHILE (objname # 0X) & (objname[i] # ".") DO
@@ -843,18 +845,18 @@ MODULE O2ETHCLL; (** non-portable / source: Win32.PELinker.Mod *)	(* ejz *)
 		END;
 		name[i] := 0X;
 		IF objname[i] = "." THEN
-			mod := BootLink.FindModule(name);
+			mod := BootLinker.FindModule(name);
 			Assert(mod # NIL, name, ": module not found");
 			INC(i); j := 0;
 			WHILE objname[i] # 0X DO
 				name[j] := objname[i]; INC(i); INC(j)
 			END;
 			name[j] := 0X;
-			adr := BootLink.FindAdr(mod, name, type);
+			adr := BootLinker.FindAdr(mod, name, type);
 			Assert(adr # 0, name, ": not found");
-			IF type = BootLink.Var THEN
+			IF type = BootLinker.Var THEN
 				RETURN mod.sb+adr
-			ELSIF type = BootLink.Proc THEN
+			ELSIF type = BootLinker.Proc THEN
 				RETURN mod.codeBase+adr
 			ELSE
 				Error("invalid object type", "")
@@ -864,21 +866,25 @@ MODULE O2ETHCLL; (** non-portable / source: Win32.PELinker.Mod *)	(* ejz *)
 		RETURN Kernel32.NULL
 	END GetObjAdr;
 
+(*
+EXE: int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
+DLL: BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved);
+*)
 	PROCEDURE WriteText(VAR R: Files.Rider; offs: LONGINT);
-		VAR F: Files.File; adr, pos, heapSize, unload, exit: LONGINT; name, obj: NameList;
+		VAR F: Files.File; adr, pos, heapSize, unload, exit, size: LONGINT; name, obj: NameList;
 	BEGIN
 		heapSize := Files.Pos(R)-text.PointerToRawData; F := Files.Base(R);
 		imgHead.AddressOfEntryPoint := text.VirtualAddress+Files.Pos(R)-text.PointerToRawData;
-		Files.Write(R, CHR(053H)); (* PUSH EBX *)
 		Files.Write(R, CHR(055H)); (* PUSH EBP *)
+		Files.Write(R, CHR(08BH)); Files.Write(R, CHR(0ECH)); (* MOV EBP, ESP *)
+		Files.Write(R, CHR(053H)); (* PUSH EBX *)
 		Files.Write(R, CHR(056H)); (* PUSH ESI *)
 		Files.Write(R, CHR(057H)); (* PUSH EDI *)
 		IF ~isEXE THEN
 			Files.Write(R, CHR(08BH)); (* MOV EBX, ReasonForCall *)
-			Files.Write(R, CHR(05CH));
-			Files.Write(R, CHR(024H));
-			Files.Write(R, CHR(018H));
-			Files.Write(R, CHR(083H)); (* CMP EBX, 0 *)
+			Files.Write(R, CHR(05DH));
+			Files.Write(R, CHR(00CH));
+			Files.Write(R, CHR(083H)); (* CMP EBX, DLLProcessDetach (=0= *)
 			Files.Write(R, CHR(0FBH));
 			Files.Write(R, CHR(000H));
 			Files.Write(R, CHR(00FH)); (* JNE x *)
@@ -888,7 +894,7 @@ MODULE O2ETHCLL; (** non-portable / source: Win32.PELinker.Mod *)	(* ejz *)
 			unload := Files.Pos(R);
 			Files.WriteLInt(R, 0);
 (* x: *)
-			Files.Write(R, CHR(083H)); (* CMP EBX, 1 *)
+			Files.Write(R, CHR(083H)); (* CMP EBX, DLLProcessAttach (=1) *)
 			Files.Write(R, CHR(0FBH));
 			Files.Write(R, CHR(001H));
 			Files.Write(R, CHR(00FH)); (* JNE Exit *)
@@ -904,13 +910,13 @@ MODULE O2ETHCLL; (** non-portable / source: Win32.PELinker.Mod *)	(* ejz *)
 			obj := name(ImportList).entries;
 			WHILE obj # NIL DO
 				WITH obj: EntryList DO
-					adr := GetObjAdr(obj.name, BootLink.Var);
-					Files.Write(R, CHR(08BH)); (* MOX EBX, [imgHead.ImageBase+obj.dllAdr] *)
+					adr := GetObjAdr(obj.name, BootLinker.Var);
+					Files.Write(R, CHR(08BH)); (* MOV EBX, [imgHead.ImageBase+obj.dllAdr] *)
 					Files.Write(R, CHR(01DH));
 					obj.fixup := Files.Pos(R);
 					AddFileReloc(R, imgHead.ImageBase);
 					Files.WriteLInt(R, 0 (*obj.dllAdr*));
-					Files.Write(R, CHR(089H)); (* MOX [adr], EBX *)
+					Files.Write(R, CHR(089H)); (* MOV [adr], EBX *)
 					Files.Write(R, CHR(01DH));
 					AddFileReloc(R, adr);
 					Files.WriteLInt(R, adr)
@@ -924,28 +930,35 @@ MODULE O2ETHCLL; (** non-portable / source: Win32.PELinker.Mod *)	(* ejz *)
 		obj := imports.entries;
 		WHILE obj # NIL DO
 			WITH obj: EntryList DO
-				adr := GetObjAdr(obj.name, BootLink.Var);
+				adr := GetObjAdr(obj.name, BootLinker.Var);
+				size := 4;
 				IF obj.value = "HEAPSIZE" THEN
-					Files.Write(R, CHR(0BBH)); (* MOX EBX, HeapSize *)
+					Files.Write(R, CHR(0BBH)); (* MOV EBX, HeapSize *)
 					Files.WriteLInt(R, heapSize)
 				ELSIF obj.value = "HEAPADR" THEN
-					Files.Write(R, CHR(0BBH)); (* MOX EBX, HeapAdr *)
+					Files.Write(R, CHR(0BBH)); (* MOV EBX, HeapAdr *)
 					AddFileReloc(R, imgHead.ImageBase+text.VirtualAddress);
 					Files.WriteLInt(R, imgHead.ImageBase+text.VirtualAddress)
-				ELSIF obj.value = "HINSTANCE" THEN
+				ELSIF obj.value = "ISEXE" THEN
+					size := 1;
+					Files.Write(R, CHR(0B3H)); (* MOV BL, isEXE *)
 					IF isEXE THEN
-						Files.Write(R, CHR(0BBH)); (* MOX EBX, NULL *)
-						Files.WriteLInt(R, Kernel32.NULL)
+						Files.Write(R, CHR(001H))
 					ELSE
-						Files.Write(R, CHR(08BH)); (* MOV EBX, x[ESP] *)
-						Files.Write(R, CHR(05CH));
-						Files.Write(R, CHR(024H));
-						Files.Write(R, CHR(014H)) (* x *)
+						Files.Write(R, CHR(000H))
 					END
+				ELSIF (obj.value = "HINSTANCE") & ~isEXE THEN
+					Files.Write(R, CHR(08BH)); (* MOV EBX, hinstDLL *)
+					Files.Write(R, CHR(05DH));
+					Files.Write(R, CHR(008H))
 				ELSE
 					Error(obj.value, ": unknown entry")
 				END;
-				Files.Write(R, CHR(089H)); (* MOX [adr], EBX *)
+				IF size = 4 THEN
+					Files.Write(R, CHR(089H)) (* MOV [adr], EBX *)
+				ELSIF size = 1 THEN
+					Files.Write(R, CHR(088H)) (* MOV [adr], BL *)
+				END;
 				Files.Write(R, CHR(01DH));
 				AddFileReloc(R, adr);
 				Files.WriteLInt(R, adr)
@@ -974,11 +987,12 @@ MODULE O2ETHCLL; (** non-portable / source: Win32.PELinker.Mod *)	(* ejz *)
 
 		Files.Write(R, CHR(05FH)); (* POP EDI *)
 		Files.Write(R, CHR(05EH)); (* POP ESI *)
-		Files.Write(R, CHR(05DH)); (* POP EBP *)
 		Files.Write(R, CHR(05BH)); (* POP EBX *)
+		Files.Write(R, CHR(08BH)); Files.Write(R, CHR(0E5H)); (* MOV ESP, EBP *)
+		Files.Write(R, CHR(05DH)); (* POP EBP *)
 		IF isEXE THEN
 			Files.Write(R, CHR(0B8H)); Files.WriteLInt(R, 0); (* MOV EAX, 0 *)
-			Files.Write(R, CHR(0C3H)) (* RET *)
+			Files.Write(R, CHR(0C2H)); Files.Write(R, CHR(010H)); Files.Write(R, CHR(000H)) (* RET 16 *)
 		ELSE
 			Files.Write(R, CHR(0B8H)); Files.WriteLInt(R, -1); (* MOV EAX, TRUE *)
 			Files.Write(R, CHR(0C2H)); Files.Write(R, CHR(00CH)); Files.Write(R, CHR(000H)) (* RET 12 *)
@@ -1132,7 +1146,7 @@ Kernel32.Str(e.name); Kernel32.Str(" "); Kernel32.Int(e.entry); Kernel32.Ln();
 		Files.WriteBytes(R, head, SIZE(ImageExportDirectory));
 		e := exportOrds;
 		WHILE e # NIL DO
-			adr := GetObjAdr(e.value, BootLink.Proc);
+			adr := GetObjAdr(e.value, BootLinker.Proc);
 			Files.WriteLInt(R, adr-imgHead.ImageBase);
 			e := e.nextOrd
 		END;
@@ -1636,7 +1650,7 @@ ASSERT((this >= text.VirtualAddress) & (this <= (text.VirtualAddress+text.Virtua
 		VAR
 			context: Exceptions.Context;
 			F: Files.File; R: Files.Rider;
-			mod: BootLink.Module; base, offs: LONGINT; name: NameList;
+			mod: BootLinker.Module; base, offs: LONGINT; name: NameList;
 			sections: INTEGER; done: BOOLEAN;
 		PROCEDURE *Handler(VAR e: Exceptions.Exception): LONGINT;
 		BEGIN
@@ -1671,17 +1685,17 @@ ASSERT((this >= text.VirtualAddress) & (this <= (text.VirtualAddress+text.Virtua
 			FileAlign(R, DefaultFileAlign, 0X);
 			text.VirtualAddress := BaseRVA;
 			base := imgHead.ImageBase+text.VirtualAddress;
-			BootLink.AddReloc := AddReloc;
-			BootLink.BeginLink(base, Modules.extension, base);
+			BootLinker.AddReloc := AddReloc;
+			BootLinker.BeginLink(base, extension, base);
 			name := modules;
 			WHILE name # NIL DO
 				Texts.WriteString(W, "  "); Texts.WriteString(W, name.name);
 				Texts.WriteLn(W); Texts.Append(Texts.Log, W.buf);
-				BootLink.Load(mod, name.name, base);
+				BootLinker.Load(mod, name.name, base);
 				name := name.next
 			END;
 			text.PointerToRawData := Files.Pos(R);
-			BootLink.EndLink(R, base, offs);
+			BootLinker.EndLink(R, base, offs);
 			WriteText(R, offs);
 			WriteIData(R);
 			IF exports # NIL THEN WriteEData(R) END;
@@ -1700,7 +1714,7 @@ ASSERT((this >= text.VirtualAddress) & (this <= (text.VirtualAddress+text.Virtua
 				Align(edata.SizeOfRawData, DefaultSectionAlign)+
 				Align(reloc.SizeOfRawData, DefaultSectionAlign)+
 				Align(rsrc.SizeOfRawData, DefaultSectionAlign);
-			BootLink.Close();
+			BootLinker.Close();
 			Files.Set(R, F, 0);
 			WriteImageHeader(R, sections);
 			Files.WriteBytes(R, imgHead, SIZE(ImageOptionalHeader));
@@ -1758,7 +1772,7 @@ ASSERT((this >= text.VirtualAddress) & (this <= (text.VirtualAddress+text.Virtua
 	BEGIN
 		Console.WriteLn();
 		Console.WriteString("Command line version of the ETH Oberon Plugin for");	Console.WriteLn();
-		Console.WriteString("Windows   Release 2.4  Oberon  PELinker  utility.");	Console.WriteLn();
+		Console.WriteString("Windows   Release 2.5  Oberon  PELinker  utility.");	Console.WriteLn();
 		Console.WriteLn();
 		Console.WriteString("  PELinker by: Team of the Institute for Computer");	Console.WriteLn();
 		Console.WriteString("  Systems  of  ETH  Zuerich  (www.oberon.ethz.ch)");	Console.WriteLn();
@@ -1840,10 +1854,20 @@ ASSERT((this >= text.VirtualAddress) & (this <= (text.VirtualAddress+text.Virtua
 	END GetOptions;
 
 	(** PELinker.Link .Link-file *)
-	PROCEDURE Link();
+	PROCEDURE Link*;
 		VAR T: Texts.Text; done: BOOLEAN;
 			name : FileDir.FileName;
 	BEGIN
+		COPY(Modules.extension, extension);
+		(*IF (S.class = Texts.Char) & (S.c = Oberon.OptionChar) THEN
+			Texts.Scan(S);
+			IF (S.class IN {Texts.Name, Texts.String}) & (S.s[0] = ".") THEN
+				COPY(S.s, extension); Texts.Scan(S)
+			ELSE
+				Texts.WriteString(W, "PELinker.Link unknown option"); Texts.WriteLn(W);
+				Texts.Append(Oberon.Log, W.buf); RETURN
+			END
+		END;*)
 		dependencyListOnly := FALSE;
 		IF GetOptions(name) THEN
 			NEW(T); Texts.Open(T, name);
@@ -1857,5 +1881,7 @@ ASSERT((this >= text.VirtualAddress) & (this <= (text.VirtualAddress+text.Virtua
 	END Link;
 
 BEGIN
+	COPY(Modules.extension, extension);
+	(*Texts.OpenWriter(W)*)
 	Link();
 END O2ETHCLL.

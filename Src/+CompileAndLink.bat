@@ -28,7 +28,7 @@ o2c.exe O2ETHCLC.Mod
 o2c.exe Types.Mod
 o2c.exe Win32.Threads.Mod
 o2c.exe Win32.Exceptions.Mod
-o2c.exe Win32.Bootlink.Mod
+o2c.exe Win32.BootLinker.Mod
 o2c.exe O2ETHCLL.Mod
 
 o2l.exe O2ETHCLC.exe.Link

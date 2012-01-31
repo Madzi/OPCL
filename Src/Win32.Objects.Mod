@@ -1,9 +1,9 @@
-(* ETH Oberon, Copyright 2000 ETH Zuerich Institut fuer Computersysteme, ETH Zentrum, CH-8092 Zuerich.
+(* ETH Oberon, Copyright 2001 ETH Zuerich Institut fuer Computersysteme, ETH Zentrum, CH-8092 Zuerich.
 Refer to the "General ETH Oberon System Source License" contract available at: http://www.oberon.ethz.ch/ *)
 
 MODULE Objects; (** portable / source: Win32.Objects.Mod *)	(* JG 21.9.93/comments jm 28.2.95*)
 
-(** Module Objects forms the basis of the object-oriented part of the Oberon system. It provides the system with the type Object and defines what messages objects understand. Most entities in Oberon are derived from this base type. *)
+ (** Module Objects forms the basis of the object-oriented part of the Oberon system. It provides the system with the type Object and defines what messages objects understand. Most entities in Oberon are derived from this base type. *)
 
 	IMPORT SYSTEM, Kernel32, Kernel, Files, Modules;
 
@@ -11,7 +11,7 @@ MODULE Objects; (** portable / source: Win32.Objects.Mod *)	(* JG 21.9.93/commen
 		enum* = 0; get* = 1; set* = 2; (** AttrMsg and LinkMsg id *)
 		shallow* = 0; deep* = 1; (** CopyMsg id *)
 		load* = 0; store* = 1; (** FileMsg id*)
-
+		
 		(** AttrMsg class *)
 		Inval* = 0; String* = 2; Int* = 3; Real* = 4; LongReal* = 5; Char* = 6; Bool* = 7;
 
@@ -63,7 +63,7 @@ MODULE Objects; (** portable / source: Win32.Objects.Mod *)	(* JG 21.9.93/commen
 			res*: INTEGER;	(** Return result: < 0 = no response, >= 0 action completed. *)
 			obj*: Object	(** Value of the link to be set, or link result. *)
 		END;
-
+	
 		(** Request to an object to make a copy of itself *)
 		CopyMsg* = RECORD (ObjMsg)
 			id*: INTEGER;	(** Copy style: deep or shallow. *)
@@ -123,7 +123,7 @@ MODULE Objects; (** portable / source: Win32.Objects.Mod *)	(* JG 21.9.93/commen
 			key: INTEGER;
 			first: Entry
 		END;
-
+		
 		GenName = ARRAY 64 OF CHAR;
 
 		LibDesc* = RECORD	(** Container for persistent objects. *)
@@ -138,19 +138,19 @@ MODULE Objects; (** portable / source: Win32.Objects.Mod *)	(* JG 21.9.93/commen
 
 			(** Return a free reference number. *)
 			GenRef*: PROCEDURE (L: Library; VAR ref: INTEGER);
-
+			
 			(** Return the object with the indicated reference number. *)
 			GetObj*: PROCEDURE (L: Library; ref: INTEGER; VAR obj: Object);
-
+			
 			(** Insert an object under the indicated reference number. *)
 			PutObj*: PROCEDURE (L: Library; ref: INTEGER; obj: Object);
-
+			
 			(** Free object with indicated reference number. *)
 			FreeObj*: PROCEDURE (L: Library; ref: INTEGER);
-
+			
 			(** Initialize/load library with L.name. *)
 			Load*: PROCEDURE (L: Library);
-
+			
 			(** Store library under L.name. *)
 			Store*: PROCEDURE (L: Library)
 		END;
@@ -243,10 +243,7 @@ MODULE Objects; (** portable / source: Win32.Objects.Mod *)	(* JG 21.9.93/commen
 					IF name = L.name THEN
 						L.next := FirstLib.next; FirstLib.next := L
 					ELSE
-						NEW(A); COPY(name, A.name); A.lib := L; A.next := FirstAlias.next; FirstAlias.next := A;
-						Kernel32.Str("Alias: ");
-						Kernel32.Str(name); Kernel32.Str(" -> "); Kernel32.Str(L.name);
-						Kernel32.Ln()
+						NEW(A); COPY(name, A.name); A.lib := L; A.next := FirstAlias.next; FirstAlias.next := A
 					END
 				END
 			END
@@ -492,7 +489,7 @@ MODULE Objects; (** portable / source: Win32.Objects.Mod *)	(* JG 21.9.93/commen
 		END;
 		len := 1 + clen + dlen
 	END OldLoadLibrary;
-
+	
 (** Load a standard object library from position pos in file f. *)
 	PROCEDURE LoadLibrary*(L: Library; f: Files.File; pos: LONGINT; VAR len: LONGINT);
 		VAR ind: ArrayIndex; dict: ListDict; i, n, N, version, dorg, gorg: LONGINT; key: INTEGER; entry: Entry;
@@ -567,7 +564,7 @@ MODULE Objects; (** portable / source: Win32.Objects.Mod *)	(* JG 21.9.93/commen
 					n := 0;
 					WHILE GName[n] # GName[N] DO INC(n) END;
 					IF n = N THEN INC(N) END;
-
+					
 					Files.WriteLInt(indR, Files.Pos(R));	(* write index *)
 					Files.WriteInt(R, SHORT(n));
 					Files.WriteLInt(R, olen);
@@ -755,14 +752,14 @@ To create a new object, we first have to introduce a new object type, allocate a
 		MyObjDesc = RECORD (Objects.ObjDesc)	(* Extension of Objects.ObjDesc. *)
 			A, B: LONGINT;	(* Object instance variables. *)
 		END;
-
+		
 	PROCEDURE CreateObj;
 	VAR obj: MyObj;
 	BEGIN
 		NEW(obj);	(* allocate a new object on the heap *)
 		obj.handle := MyHandler;	(* attach the message handler. *)
 	END CreateObj;
-
+	
 Here we created a new object type with two additional instance variables A and B. To open up access to the instance variables in the message handler, we will need to modify the message handler slightly:
 
 	PROCEDURE MyHandler(obj: Object; VAR M: ObjMsg);
@@ -785,7 +782,7 @@ Here we created a new object type with two additional instance variables A and B
 This change also means that MyHandler can only be safely attached to objects (or extensions) of type MyObj; attaching the handler to objects of other types will cause a runtime exception (trap) when trying to open access to the fields of MyObj. Sending a message to an object involves allocating it on the stack, filling out the message fields, and calling the object message handler. For example:
 
 	VAR obj: MyObj;
-
+	
 	PROCEDURE GetName;
 	VAR M: Objects.AttrMsg;	(* Allocate message on the stack. *)
 	BEGIN
@@ -793,7 +790,7 @@ This change also means that MyHandler can only be safely attached to objects (or
 		obj.handle(obj, M);	(* Send message. *)
 		Out.String(M.s); Out.Ln;	(* Process result. *)
 	END GetName;
-
+	
 You are allowed to define new message types for your own objects, in a similar manner as shown in the message definitions above. Note how many of the messages have id fields; these indicate different sub-operations a message requests. The id values are declared per message as INTEGER constants at the beginning of the module.
 
 3. Forwarding and Broadcasts
@@ -834,7 +831,7 @@ The LinkMsg is used to link objects between each other i.e. setting a pointer in
 Shallow copy means copying an object but reusing its descendants, and deep copy means copying all objects reachable from a certain root object. Due to the DAG nature of the display space, the deep copy message arrives once or more times at an object, in which case it only should copy itself once to guarantee structure preserving copies. The following shows that an object should cache the first copy that it makes of itself in the dlink field, which is then returned on receiving the message a second time:
 
 		VAR F0: Frame; (* the copy goes here *)
-
+		
 		IF M IS Objects.CopyMsg THEN
 			WITH M: Objects.CopyMsg DO
 				IF M.stamp = F.stamp THEN M.obj := F.dlink	(* copy msg arrives again *)
@@ -843,7 +840,7 @@ Shallow copy means copying an object but reusing its descendants, and deep copy 
 				END
 			END
 		END
-
+		
 11. The BindMsg
 The BindMsg is a request to an object to bind itself to a library. By convention, an object can migrate from library to library, except when bound to a public library. Binding allocates a reference number to an object which is conveniently used as a pointer alias between objects stored in a file.
 

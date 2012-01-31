@@ -1,8 +1,9 @@
-(* ETH Oberon, Copyright 2000 ETH Zuerich Institut fuer Computersysteme, ETH Zentrum, CH-8092 Zuerich.
+(* ETH Oberon, Copyright 2001 ETH Zuerich Institut fuer Computersysteme, ETH Zentrum, CH-8092 Zuerich.
 Refer to the "General ETH Oberon System Source License" contract available at: http://www.oberon.ethz.ch/ *)
 
 (* Oberon Portable build parse tree (front end) *)
 (* RC, rml, pjm, prk*)
+
 
 (*
 	References:
@@ -14,19 +15,19 @@ MODULE OPB;	(** non-portable *)
 	IMPORT SYSTEM, OPT, OPS, OPM;
 
 	CONST
-		AwaitIF* = FALSE;
-
+		AwaitIF* = TRUE;
+		
 		(* symbol values or ops *)
 		times = 1; slash = 2; div = 3; mod = 4;
 		and = 5; plus = 6; minus = 7; or = 8; eql = 9;
 		neq = 10; lss = 11; leq = 12; gtr = 13; geq = 14;
 		in = 15; is = 16; ash = 17; msk = 18; len = 19;
 		conv = 20; abs = 21; cap = 22; odd = 23; not = 33;
-
+ 		
 		(*SYSTEM*)
 		adr = 24; cc = 25; bit = 26; lsh = 27; rot = 28; val = 29;
 		get8 = 30; get16 = 31; get32 = 32; type = 34;
-
+		
 		(* object modes *)
 		Var = 1; VarPar = 2; Con = 3; Fld = 4; Typ = 5; LProc = 6; XProc = 7;
 		SProc = 8; CProc = 9; IProc = 10; Mod = 11; Head = 12; TProc = 13;
@@ -37,11 +38,11 @@ MODULE OPB;	(** non-portable *)
 		Pointer = 13; ProcTyp = 14; Comp = 15;
 		HInt = 16;
 		intSet = {SInt..LInt}; realSet = {Real, LReal};
-
+		
 		(* composite structure forms *)
 		Basic = 1; StaticArr = 2; SDynArr = 3; DynArr = 4; OpenArr = 5; Record = 6;
 		ArraySet = {StaticArr, SDynArr, DynArr, OpenArr};
-
+		
 		(* nodes classes *)
 		Nvar = 0; Nvarpar = 1; Nfield = 2; Nderef = 3; Nindex = 4; Nguard = 5; Neguard = 6;
 		Nconst = 7; Ntype = 8; Nproc = 9; Nupto = 10; Nmop = 11; Ndop = 12; Ncall = 13;
@@ -56,7 +57,7 @@ MODULE OPB;	(** non-portable *)
 		shortfn = 10; longfn = 11; sizefn = 12; incfn = 13; decfn = 14;
 		inclfn = 15; exclfn = 16; lenfn = 17; copyfn = 18; ashfn = 19; assertfn = 32;
 		awaitfn = 64; lockfn = 66;
-
+		
 		(*SYSTEM function number*)
 		adrfn = 20; ccfn = 21; lshfn = 22; rotfn = 23;
 		getfn = 24; putfn = 25; getrfn = 26; putrfn = 27;
@@ -72,14 +73,14 @@ MODULE OPB;	(** non-portable *)
 
 		(* procedure flags (conval^.setval) *)
 		hasBody = 1; isRedef = 2; slNeeded = 3;
-
+		
 		(* options *)
 		ovflchk = 1;	(* overflow check *)
-
+		
 		AssertTrap = 8;	(* default trap number *)
 
 		(* sysflag *) (* ejz *)
-		notag = 1; stdcall = 2; cdecl = 3;
+		notag = 1; stdcall = 2; cdecl = 3; delegate = 5;
 
 	VAR
 		typSize*: PROCEDURE(typ: OPT.Struct; allocDesc: BOOLEAN);
@@ -102,7 +103,7 @@ MODULE OPB;	(** non-portable *)
 			t^.link:=stat; stat^.link:=NIL
 		END
 	END InitInsert;
-
+	
 	PROCEDURE CodeInsert*(VAR stat: OPT.Node);
 		VAR t: OPT.Node;
 	BEGIN
@@ -113,7 +114,7 @@ MODULE OPB;	(** non-portable *)
 			t^.link:=stat; stat^.link:=NIL
 		END
 	END CodeInsert;
-
+	
 	PROCEDURE InitAppend(VAR x: OPT.Node);
 		VAR t: OPT.Node;
 	BEGIN (* smistare il contenuto -> per Head forse non necessario *)
@@ -124,7 +125,7 @@ MODULE OPB;	(** non-portable *)
 			x:=OPT.topScope.code; OPT.topScope.code:=NIL
 		END
 	END InitAppend;
-
+	
 	PROCEDURE NewLeaf*(obj: OPT.Object): OPT.Node;
 		VAR node: OPT.Node; self: OPT.Object;
 	BEGIN
@@ -143,6 +144,7 @@ MODULE OPB;	(** non-portable *)
 				node := OPT.NewNode(Nproc)
 		| Fld, TProc:
 				OPT.FindInScope("@SELF", OPT.topScope, self); node := NewLeaf(self);
+				IF node.typ.form = Pointer THEN DeRef(node) END;
 				Field(node, obj);
 				RETURN node
 		ELSE err(127); node := OPT.NewNode(Nvar)
@@ -150,31 +152,31 @@ MODULE OPB;	(** non-portable *)
 		node^.obj := obj; node^.typ := obj^.typ;
 		RETURN node
 	END NewLeaf;
-
+	
 	PROCEDURE Construct*(class: SHORTINT; VAR x: OPT.Node;  y: OPT.Node);
 		VAR node: OPT.Node;
 	BEGIN
 		node := OPT.NewNode(class); node^.typ := OPT.notyp;
 		node^.left := x; node^.right := y; x := node
 	END Construct;
-
+	
 	PROCEDURE Link*(VAR x, last: OPT.Node; y: OPT.Node);
 	BEGIN
 		IF x = NIL THEN x := y ELSE last^.link := y END ;
 		WHILE y^.link # NIL DO y := y^.link END ;
 		last := y
 	END Link;
-
+	
 	PROCEDURE BoolToInt(b: BOOLEAN): LONGINT;
 	BEGIN
 		IF b THEN RETURN 1 ELSE RETURN 0 END
 	END BoolToInt;
-
+	
 	PROCEDURE IntToBool(i: LONGINT): BOOLEAN;
 	BEGIN
 		IF i = 0 THEN RETURN FALSE ELSE RETURN TRUE END
 	END IntToBool;
-
+	
 	PROCEDURE NewBoolConst*(boolval: BOOLEAN): OPT.Node;
 		VAR x: OPT.Node;
 	BEGIN
@@ -243,7 +245,7 @@ MODULE OPB;	(** non-portable *)
 		x := OPT.NewNode(Nconst); x^.conval := OPT.NewConst();
 		x^.conval^.intval := intval; SetIntType(x); RETURN x
 	END NewIntConst;
-
+	
 	PROCEDURE NewRealConst*(realval: LONGREAL; typ: OPT.Struct): OPT.Node;
 		VAR x: OPT.Node;
 	BEGIN
@@ -261,7 +263,7 @@ MODULE OPB;	(** non-portable *)
 		x^.conval^.ext^ := str;
 		RETURN x
 	END NewString;
-
+	
 	PROCEDURE CharToString(n: OPT.Node);
 		VAR ch: CHAR;
 	BEGIN
@@ -309,6 +311,7 @@ MODULE OPB;	(** non-portable *)
 
 	PROCEDURE Field*(VAR x: OPT.Node; y: OPT.Object);
 	BEGIN (*x^.typ^.comp = Record*)
+		ASSERT(x.typ.comp = Record);
 		IF x^.class >= Nconst THEN err(77)
 		ELSIF (y # NIL) & (y^.mode IN {Fld, TProc}) THEN
 			BindNodes(Nfield, y^.typ, x, NIL); x^.obj := y;
@@ -318,7 +321,7 @@ MODULE OPB;	(** non-portable *)
 		ELSE err(83); x^.typ := OPT.undftyp
 		END
 	END Field;
-
+	
 	PROCEDURE TypTest*(VAR x: OPT.Node; obj: OPT.Object; guard: BOOLEAN);
 
 		PROCEDURE GTT(t0, t1: OPT.Struct);
@@ -403,10 +406,10 @@ MODULE OPB;	(** non-portable *)
 		END ;
 		x^.intval := OPM.ConstNotAlloc
 	END CheckRealType;
-
+	
 	PROCEDURE MOp*(op: SHORTINT; VAR x: OPT.Node);
 		VAR f: INTEGER; typ: OPT.Struct; z: OPT.Node;
-
+		
 		PROCEDURE NewOp(op: SHORTINT; typ: OPT.Struct; z: OPT.Node): OPT.Node;
 			VAR node: OPT.Node;
 		BEGIN
@@ -416,6 +419,7 @@ MODULE OPB;	(** non-portable *)
 
 	BEGIN z := x;
 		IF ((z^.class = Ntype) OR (z^.class = Nproc))  & (op # type) THEN err(126)
+		ELSIF (z.class = Nfield) & (z.obj.mode = TProc) THEN err(OPS.lparen)
 		ELSE typ := z^.typ; f := typ^.form;
 			CASE op OF
 			  not:
@@ -521,7 +525,7 @@ MODULE OPB;	(** non-portable *)
 		ELSIF g # NilTyp THEN err(100)
 		END
 	END CheckPtr;
-
+	
 	PROCEDURE CheckParameters*(fp, ap: OPT.Object; checkNames: BOOLEAN);
 		VAR ft, at: OPT.Struct;
 	BEGIN
@@ -553,23 +557,32 @@ MODULE OPB;	(** non-portable *)
 
 	PROCEDURE CheckProc(x: OPT.Struct; y: OPT.Object);	(* proc var x := proc y, check compatibility *)
 	BEGIN
-		IF y^.mode IN {XProc, IProc, LProc} THEN
-			IF y^.mode = LProc THEN
-				IF y^.mnolev = 0 THEN y^.mode := XProc
-				ELSE err(73)
-				END
-			END ;
-			IF x^.BaseTyp = y^.typ THEN CheckParameters(x^.link, y^.link, FALSE)
+		IF (x.sysflag = delegate) & (y.mode = TProc) THEN
+			IF x^.BaseTyp = y^.typ THEN CheckParameters(x^.link, y^.link.link, FALSE)
 			ELSE err(117)
 			END;
-			IF x.sysflag # y.sysflag THEN
-				IF x.sysflag # 0 THEN
-					err(113)
-				ELSIF y.sysflag = cdecl THEN
-					err(113)
+			IF y.sysflag # 0 THEN err(113) END
+		ELSE
+			IF y^.mode IN {XProc, IProc, LProc} THEN
+				IF y^.mode = LProc THEN
+					IF y^.mnolev = 0 THEN y^.mode := XProc
+					ELSE err(73)
+					END
+				END ;
+				IF x^.BaseTyp = y^.typ THEN CheckParameters(x^.link, y^.link, FALSE)
+				ELSE err(117)
+				END;
+				IF (x.sysflag = delegate) THEN
+					IF y.sysflag # 0 THEN err(113) END
+				ELSIF x.sysflag # y.sysflag THEN
+					IF x.sysflag # 0 THEN
+						err(113)
+					ELSIF y.sysflag = cdecl THEN
+						err(113)
+					END
 				END
+			ELSE err(113)
 			END
-		ELSE err(113)
 		END
 	END CheckProc;
 
@@ -818,7 +831,7 @@ MODULE OPB;	(** non-portable *)
 	END Convert;
 
 	PROCEDURE Val(VAR x: OPT.Node;  typ: OPT.Struct);	(*SYSTEM.VAL, change type, no convertion only projection*)
-	VAR  t: OPT.Node;  f: INTEGER; r: REAL;
+	VAR  t: OPT.Node;  f: INTEGER;  r: REAL;
 	BEGIN
 		f := x.typ.form;
 		IF (x^.class = Ntype) OR (x^.class = Nproc) OR
@@ -850,12 +863,13 @@ MODULE OPB;	(** non-portable *)
 				ELSE t := OPT.NewNode(Nmop); t^.subcl := val; t^.left := x; x := t
 				END
 			ELSIF (typ^.form IN realSet) THEN t := OPT.NewNode(Nmop); t^.subcl := val; t^.left := x; x := t
+			ELSIF OPM.OptimizeSelf & (typ.sysflag = delegate) & (typ^.form = ProcTyp) & (f # ProcTyp) THEN t := OPT.NewNode(Nmop); t^.subcl := val; t^.left := x; x := t
 			ELSE x^.readonly := FALSE
 			END
 		END ;
 		x.typ := typ
 	END Val;
-
+	
 	PROCEDURE Op*(op: SHORTINT; VAR x: OPT.Node; y: OPT.Node);
 		VAR f, g: INTEGER; t, z: OPT.Node; typ: OPT.Struct; do: BOOLEAN; val: LONGINT;
 
@@ -888,6 +902,7 @@ MODULE OPB;	(** non-portable *)
 
 	BEGIN z := x;
 		IF (z^.class = Ntype) OR (z^.class = Nproc) OR (y^.class = Ntype) OR (y^.class = Nproc) THEN err(126)
+		ELSIF (z.class = Nfield) & (z.obj.mode = TProc) OR (y.class = Nfield) & (y.obj.mode = TProc) THEN err(100)
 		ELSIF (z^.class = Nconst) & (y^.class = Nconst) THEN ConstOp(op, z, y); z^.obj := NIL
 		ELSE
 			IF z^.typ # y^.typ THEN
@@ -947,7 +962,7 @@ MODULE OPB;	(** non-portable *)
 						ELSIF y^.class = Nconst THEN val := y^.conval^.intval;
 							IF val = 1 THEN do := FALSE
 							ELSIF val = 0 THEN do := FALSE; z := y
-							ELSIF (log(val) = 1) & ~(ovflchk IN OPM.options) THEN
+							ELSIF (log(val) = 1) & ~(ovflchk IN OPM.codeOptions) THEN
 								op := ash; y^.typ := OPT.sinttyp; y^.conval^.intval := exp; y^.obj := NIL
 							END
 						END
@@ -1043,7 +1058,7 @@ MODULE OPB;	(** non-portable *)
 	PROCEDURE SetRange*(VAR x: OPT.Node; y: OPT.Node);
 		VAR k, l: LONGINT;
 	BEGIN
-		IF (x^.class = Ntype) OR (x^.class = Nproc) OR (y^.class = Ntype) OR (y^.class = Nproc) THEN err(126)
+		IF (x^.class = Ntype) OR (x^.class = Nproc) OR (y^.class = Ntype) OR (y^.class = Nproc) THEN err(126)	
 		ELSIF (x^.typ^.form IN intSet) & (y^.typ^.form IN intSet) THEN
 			IF x^.class = Nconst THEN
 				k := x^.conval^.intval;
@@ -1081,12 +1096,14 @@ MODULE OPB;	(** non-portable *)
 		END ;
 		x^.typ := OPT.settyp
 	END SetElem;
-
+	
 	PROCEDURE CheckAssign(x: OPT.Struct; ynode: OPT.Node);	(* x := y *)
 		VAR f, g: INTEGER; y, p, q: OPT.Struct;
 	BEGIN
 		y := ynode^.typ; f := x^.form; g := y^.form;
-		IF (ynode^.class = Ntype) OR (ynode^.class = Nproc) & (f # ProcTyp) THEN err(126) END ;
+		IF (ynode^.class = Ntype) OR (ynode^.class = Nproc) & (f # ProcTyp) THEN err(126)
+		ELSIF (ynode.class = Nfield) & (ynode.obj.mode = TProc) & (f # ProcTyp) THEN err(OPS.lparen)
+		END ;
 		CASE f OF
 		  Undef, String:
 		| Byte:
@@ -1116,6 +1133,7 @@ MODULE OPB;	(** non-portable *)
 		| ProcTyp:
 				IF ynode^.class = Nproc THEN CheckProc(x, ynode^.obj)
 				ELSIF (x = y) OR (g = NilTyp) THEN (* ok *)
+				ELSIF OPM.OptimizeSelf & (x.sysflag = delegate) & (ynode^.class = Nfield) THEN CheckProc(x, ynode^.obj)
 				ELSE err(113)
 				END
 		| NoTyp, NilTyp:
@@ -1147,7 +1165,7 @@ MODULE OPB;	(** non-portable *)
 			Convert(ynode, x)
 		END
 	END CheckAssign;
-
+	
 	PROCEDURE CheckLeaf(x: OPT.Node; dynArrToo: BOOLEAN);
 	VAR obj: OPT.Object;
 	BEGIN
@@ -1198,7 +1216,7 @@ MODULE OPB;	(** non-portable *)
 								(*ok*)
 							ELSIF (ptr # NIL) & (ptr.BaseTyp = t) & (ptr.mno # 0) & (ptr.strobj.vis # internal) OR (OPT.typeVisible IN ptr.strobj.flag) THEN
 								(*ok*)
-							ELSE
+							ELSE	
 								err(200)	(* invisible -> td not accessible *)
 							END
 						END;
@@ -1332,7 +1350,7 @@ MODULE OPB;	(** non-portable *)
 				ELSIF x.typ.comp = DynArr THEN err(111)
 				END;
 				IF x^.class # Ntype THEN err(110); x := NewIntConst(1)
-				ELSIF (f IN {Byte..Set, Pointer, ProcTyp}) OR (x^.typ^.comp=Record) OR (x.typ.comp=StaticArr) THEN
+				ELSIF (f IN {Byte..Set, Pointer, ProcTyp, HInt}) OR (x^.typ^.comp=Record) OR (x.typ.comp=StaticArr) THEN
 					typSize(x^.typ, FALSE);
 					OPT.MarkType(x.typ);
 					x := NewIntConst(x^.typ^.size)
@@ -1345,6 +1363,9 @@ MODULE OPB;	(** non-portable *)
 				ELSIF ~(f IN intSet + {Byte, Char, Set}) THEN err(111)
 				END
 		| getfn, putfn, bitfn, movefn, get8fn..get32fn, put8fn..put32fn: (*SYSTEM.GET, SYSTEM.PUT, SYSTEM.BIT, SYSTEM.MOVE*)
+				IF OPM.WarnUnsafe THEN
+					IF (fctno = putfn) OR (fctno = movefn) OR (fctno >= put8fn) & (fctno <= put32fn) THEN err(-666) END
+				END;
 				IF (x^.class = Ntype) OR (x^.class = Nproc) THEN err(126)
 				ELSIF (x^.class = Nconst) & (f IN {SInt, Int}) THEN Convert(x, OPT.linttyp)
 				ELSIF (f=Pointer) & (x.typ.BaseTyp.comp IN {StaticArr, DynArr, OpenArr}) THEN err(111); x^.typ := OPT.linttyp
@@ -1352,6 +1373,9 @@ MODULE OPB;	(** non-portable *)
 				END;
 				IF (get8fn<=fctno) & (fctno<=get32fn) THEN  MOp(SHORT(fctno-get8fn+get8), x)  END;
 		| getrfn, putrfn: (*SYSTEM.GETREG, SYSTEM.PUTREG*)
+				IF OPM.WarnUnsafe THEN
+					IF fctno = putrfn THEN err(-666) END
+				END;
 				IF (f IN intSet) & (x^.class = Nconst) THEN
 					IF (x^.conval^.intval < OPM.MinRegNr) OR (x^.conval^.intval > OPM.MaxRegNr) THEN err(220) END
 				ELSE err(69)
@@ -1359,6 +1383,9 @@ MODULE OPB;	(** non-portable *)
 		| valfn: (*SYSTEM.VAL*)
 				IF x^.class # Ntype THEN err(110)
 				ELSIF (f IN {Undef, String, NoTyp}) OR (x^.typ^.comp IN {SDynArr, OpenArr}) THEN err(111)
+				END;
+				IF OPM.WarnUnsafe THEN
+					IF f IN {Pointer, ProcTyp, Comp} THEN err(-666) END	(* Comp check is very conservative *)
 				END
 		| sysnewfn: (*SYSTEM.NEW*)
 				IF NotVar(x) THEN err(112)
@@ -1372,6 +1399,7 @@ MODULE OPB;	(** non-portable *)
 				ELSE MOp(not, x)
 				END
 		| poutfn, pinfn:		(* SYSTEM.PORTOUT, SYSTEM.PORTIN *)
+				IF OPM.WarnUnsafe THEN err(-666) END;
 				IF (x^.class = Ntype) OR (x^.class = Nproc) THEN err(126)
 				ELSIF (x^.class = Nconst) & (f = LInt) THEN
 					IF (x^.conval.intval < 0) OR (x^.conval.intval > 65535) THEN OPM.err(203) END;
@@ -1389,14 +1417,14 @@ MODULE OPB;	(** non-portable *)
 
 	PROCEDURE StPar1*(VAR par0: OPT.Node; x: OPT.Node; fctno: SHORTINT);	(* x: second parameter of standard proc *)
 		VAR f, L: INTEGER; typ: OPT.Struct; p, t: OPT.Node; i: LONGINT;
-
+		
 		PROCEDURE NewOp(class, subcl: SHORTINT; left, right: OPT.Node): OPT.Node;
 			VAR node: OPT.Node;
 		BEGIN
 			node := OPT.NewNode(class); node^.subcl := subcl;
 			node^.left := left; node^.right := right; RETURN node
 		END NewOp;
-
+		
 	BEGIN p := par0; f := x^.typ^.form;
 		CASE fctno OF
 		  incfn, decfn: (*INC DEC*)
@@ -1685,6 +1713,7 @@ MODULE OPB;	(** non-portable *)
 			END
 		ELSE (*SYSTEM*)
 			IF (fctno = stifn) OR (fctno = clifn) THEN
+				IF OPM.WarnUnsafe THEN err(-666) END;
 				p := NIL; Construct(Nassign, p, NIL); p.subcl := fctno
 			ELSIF (fctno # stifn) & (fctno # clifn) & (parno < 1) OR
 				(fctno # stifn) & (fctno # clifn) & (fctno > ccfn) & (fctno < get8fn) & (parno < 2) OR
@@ -1693,12 +1722,15 @@ MODULE OPB;	(** non-portable *)
 		END ;
 		par0 := p
 	END StFct;
-
+	
 	PROCEDURE OpenArrParCheck(ftyp, atyp: OPT.Struct; fvarpar: BOOLEAN);
 		VAR f: INTEGER;
 	BEGIN (* ftyp^.comp = OpenArr *)
 		f := atyp^.comp; ftyp := ftyp^.BaseTyp; atyp := atyp^.BaseTyp;
 		IF (*fvarpar &*) (ftyp = OPT.bytetyp) THEN (* ok, but ... *)	(* 2. Appendix C, 2nd paragraph *)
+			IF OPM.WarnUnsafe THEN
+				IF (f = Basic) & (atyp^.form IN {Pointer, ProcTyp, Comp}) THEN err(-666) END	(* Comp check is very conservative *)
+			END;
 			IF ~(f IN ArraySet) OR ~(atyp^.form IN {Byte..SInt}) THEN err(-301) END (* ... warning 301 *)
 		ELSIF f IN ArraySet THEN
 			IF ftyp^.comp = OpenArr THEN OpenArrParCheck(ftyp, atyp, fvarpar)
@@ -1725,7 +1757,7 @@ MODULE OPB;	(** non-portable *)
 			ELSIF x^.typ^.form # Pointer THEN err(71) END
 		END
 	END CheckReceiver;
-
+	
 	PROCEDURE PrepCall*(VAR x: OPT.Node; VAR fpar: OPT.Object);
 	BEGIN
 		IF (x^.obj # NIL) & (x^.obj^.mode IN {LProc, XProc, TProc, CProc}) THEN
@@ -1760,7 +1792,9 @@ MODULE OPB;	(** non-portable *)
 					q := ap^.typ; OPT.MarkType(q);
 					WHILE (q # fp^.typ) & (q # NIL) & (q # OPT.undftyp) DO q := q^.BaseTyp END ;
 					IF q = NIL THEN err(111) END
+(*
 				ELSIF (fp^.typ = OPT.ptrtyp) & (ap^.typ^.form = Pointer) THEN (* ok *)
+*)
 				ELSIF (ap^.typ # fp^.typ) & ~((fp^.typ^.form = Byte) & (ap^.typ^.form IN {Char, SInt})) THEN err(123)
 				ELSIF (fp^.typ^.form = Pointer) & (ap^.class = Nguard) THEN err(123)
 				END
@@ -1774,8 +1808,8 @@ MODULE OPB;	(** non-portable *)
 			END
 		END
 	END Param;
-
-	PROCEDURE StaticLink*(dlev: SHORTINT);
+	
+	PROCEDURE StaticLink*(dlev: LONGINT);
 		VAR scope: OPT.Object;
 	BEGIN
 		scope := OPT.topScope;
@@ -1786,7 +1820,7 @@ MODULE OPB;	(** non-portable *)
 	END StaticLink;
 
 	PROCEDURE Call*(VAR x: OPT.Node; apar: OPT.Node; fp: OPT.Object);
-		VAR typ: OPT.Struct; p: OPT.Node; lev: SHORTINT;
+		VAR typ: OPT.Struct; p: OPT.Node; lev: LONGINT;
 	BEGIN
 		IF x^.class = Nproc THEN typ := x^.typ;
 			lev := x^.obj^.mnolev;
@@ -1801,7 +1835,7 @@ MODULE OPB;	(** non-portable *)
 		BindNodes(Ncall, typ, x, apar); x^.obj := fp;
 		x.subcl := 0  (* 0 = no assign call *)
 	END Call;
-
+	
 	PROCEDURE CopyAndSubst*(VAR new: OPT.Node; old: OPT.Node);
 	BEGIN
 		IF old = NIL THEN
@@ -1835,10 +1869,10 @@ MODULE OPB;	(** non-portable *)
 		VAR x: OPT.Node;
 	BEGIN
 		x := OPT.NewNode(Nenter); x^.typ := OPT.notyp; x^.obj := proc;
-		x^.left := procdec; x^.right := stat; InitAppend(x^.right);
+		x^.left := procdec; x^.right := stat; InitAppend(x^.right);	
 		procdec := x
 	END Enter;
-
+	
 	PROCEDURE Return*(VAR x: OPT.Node; proc: OPT.Object);
 		VAR node: OPT.Node;
 	BEGIN
@@ -1889,7 +1923,7 @@ MODULE OPB;	(** non-portable *)
 		BindNodes(Nassign, OPT.notyp, x, y); x^.subcl := assign;
 		IF struct & (y.class = Ncall) THEN y.subcl := 1 END  (* 1 = assign call *)
 	END Assign;
-
+	
 	PROCEDURE Inittd*(VAR inittd, last: OPT.Node; typ: OPT.Struct);
 		VAR node: OPT.Node;
 	BEGIN
@@ -1898,7 +1932,7 @@ MODULE OPB;	(** non-portable *)
 		IF inittd = NIL THEN inittd := node ELSE last^.link := node END ;
 		last := node
 	END Inittd;
-
+	
 BEGIN
 	maxExp := log(MAX(LONGINT) DIV 2 + 1); maxExp := exp;
 	verify:=NIL

@@ -46,6 +46,9 @@ exception caused by issuing HALT command within linker code.
 
 History
 
+31 Jan 2012
+- Update compiler and linker to ETH PlugIn Oberon Release 2.5 (7.2.2009).
+
 23 Jan 2012, v0.3
 - Show line and column in errors messages (postpone errors also supported).
   Now you can use Syn Text Editor - http://sourceforge.net/projects/syn/

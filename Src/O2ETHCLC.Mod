@@ -29,7 +29,7 @@ MODULE O2ETHCLC;
 	BEGIN
 		Console.WriteLn;
 		Console.WriteString("Command line version of the ETH Oberon Plugin for");	Console.WriteLn;
-		Console.WriteString("Windows  Release 2.4  Oberon  Portable  Compiler.");	Console.WriteLn;
+		Console.WriteString("Windows  Release 2.5  Oberon  Portable  Compiler.");	Console.WriteLn;
 		Console.WriteLn;
 		Console.WriteString("  Compiler by: Team of the Institute for Computer");	Console.WriteLn;
 		Console.WriteString("  Systems  of  ETH  Zuerich  (www.oberon.ethz.ch)");	Console.WriteLn;
@@ -200,39 +200,39 @@ MODULE O2ETHCLC;
 	END CheckOptions;
 
 	(***********************************)
-	PROCEDURE ParseOptions(VAR options: ARRAY OF CHAR; VAR opt: SET);
+	PROCEDURE ParseOptions(VAR options: ARRAY OF CHAR; VAR codeOpt, parserOpt: SET);
 		VAR i: LONGINT;
 	BEGIN
-		opt := OPM.DefOpt;
+		codeOpt := OPM.DefaultCodeOpt; parserOpt := OPM.DefaultParserOpt;
 		i := 0;
 		LOOP
 			CASE options[i] OF
 			| 0X: EXIT
-			| "f": INCL(opt, OPM.nofiles)
-			| "F": EXCL(opt, OPM.nofiles)
-			| "n": EXCL(opt, OPM.newsf)
-			| "N": INCL(opt, OPM.newsf)
-			| "e": EXCL(opt, OPM.extsf)
-			| "E": INCL(opt, OPM.extsf)
-			| "s": INCL(opt, OPM.systemchk)
-			| "S": EXCL(opt, OPM.systemchk)
-			| "w": EXCL(opt, OPM.warning)
-			| "W": INCL(opt, OPM.warning)
-			| "p": EXCL(opt, OPM.ptrinit)
-			| "P": INCL(opt, OPM.ptrinit)
-			| "z": EXCL(opt, OPM.fullstackinit)
-			| "Z": IF OPM.ptrinit IN opt THEN INCL(opt, OPM.fullstackinit) END
-			| "a": EXCL(opt, OPM.assert)
-			| "A": INCL(opt, OPM.assert)
-			| "x": EXCL(opt, OPM.inxchk)
-			| "X": INCL(opt, OPM.inxchk)
-			| "t": EXCL(opt, OPM.typchk)
-			| "T": INCL(opt, OPM.typchk)
-			| "v": EXCL(opt, OPM.ovflchk)
-			| "V": INCL(opt, OPM.ovflchk)
-			| "3": EXCL(opt, OPM.oberon2);	EXCL(opt, OPM.oberon1)
-			| "2": INCL(opt, OPM.oberon2);	EXCL(opt, OPM.oberon1)
-			| "1": INCL(opt, OPM.oberon1);	EXCL(opt, OPM.oberon2)
+			| "f": INCL(parserOpt, OPM.nofiles)
+			| "F": EXCL(parserOpt, OPM.nofiles)
+			| "n": EXCL(parserOpt, OPM.newsf)
+			| "N": INCL(parserOpt, OPM.newsf)
+			| "e": EXCL(parserOpt, OPM.extsf)
+			| "E": INCL(parserOpt, OPM.extsf)
+			| "s": INCL(parserOpt, OPM.systemchk)
+			| "S": EXCL(parserOpt, OPM.systemchk)
+			| "w": EXCL(parserOpt, OPM.warning)
+			| "W": INCL(parserOpt, OPM.warning)
+			| "p": EXCL(codeOpt, OPM.ptrinit)
+			| "P": INCL(codeOpt, OPM.ptrinit)
+			| "z": EXCL(codeOpt, OPM.fullstackinit)
+			| "Z": IF OPM.ptrinit IN codeOpt THEN INCL(codeOpt, OPM.fullstackinit) END
+			| "a": EXCL(codeOpt, OPM.assert)
+			| "A": INCL(codeOpt, OPM.assert)
+			| "x": EXCL(codeOpt, OPM.inxchk)
+			| "X": INCL(codeOpt, OPM.inxchk)
+			| "t": EXCL(codeOpt, OPM.typchk)
+			| "T": INCL(codeOpt, OPM.typchk)
+			| "v": EXCL(codeOpt, OPM.ovflchk)
+			| "V": INCL(codeOpt, OPM.ovflchk)
+			| "3": EXCL(parserOpt, OPM.oberon2);	EXCL(parserOpt, OPM.oberon1)
+			| "2": INCL(parserOpt, OPM.oberon2);	EXCL(parserOpt, OPM.oberon1)
+			| "1": INCL(parserOpt, OPM.oberon1);	EXCL(parserOpt, OPM.oberon2)
 			END;
 			INC(i);
 		END;
@@ -281,16 +281,16 @@ MODULE O2ETHCLC;
 	(***********************************)
 	PROCEDURE Module(source: Texts.Reader; path, options: ARRAY OF CHAR; breakpc: LONGINT;
 			log: Texts.Text; VAR error: BOOLEAN);
-		VAR opt: SET; extSF, newSF: BOOLEAN; p: OPT.Node; modName: OPS.Name;
+		VAR codeOpt, parserOpt: SET; extSF, newSF: BOOLEAN; p: OPT.Node; modName: OPS.Name;
 	BEGIN
 		OPM.outputPrefix[0] := 0X;
 		COPY(path, OPM.outputPath);
 		COPY(Modules.extension, OPM.extension);
-		ParseOptions(options, opt);
+		ParseOptions(options, codeOpt, parserOpt);
 		WriteMsg(source, log);
-		OPM.Init(opt, source, log);	OPS.ch := " ";
-		OPB.typSize := OPV.TypSize;	OPV.Init(opt, breakpc);
-		newSF := OPM.newsf IN opt;	extSF := OPM.extsf IN opt;
+		OPM.Init(codeOpt, parserOpt, source, log);	OPS.ch := " ";
+		OPB.typSize := OPV.TypSize;	OPV.Init(breakpc);
+		newSF := OPM.newsf IN parserOpt;	extSF := OPM.extsf IN parserOpt;
 		OPP.Module(p, modName);
 		IF OPM.noerr THEN
 			OPL.Init;
@@ -327,7 +327,7 @@ MODULE O2ETHCLC;
 		VAR sym: SHORTINT;
 	BEGIN
 		Texts.WriteString(W, " compiling ");
-		OPM.Init({}, source, log);	OPS.Get(sym);
+		OPM.Init({}, {}, source, log);	OPS.Get(sym);
 		IF sym = module THEN
 			OPS.Get(sym);
 			IF sym = ident THEN
