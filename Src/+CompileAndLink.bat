@@ -9,7 +9,7 @@ o2c.exe Win32.Objects.Mod
 o2c.exe Win32.Reals.Mod
 o2c.exe Dates.Mod
 o2c.exe Strings.Mod
-o2c.exe Console.Mod
+o2c.exe Win32.Console.Mod
 o2c.exe Win32.Fonts.Mod
 o2c.exe Texts.Mod
 o2c.exe Win32.OPM.Mod
@@ -22,13 +22,13 @@ o2c.exe OPL.Mod
 o2c.exe OPC.Mod
 o2c.exe OPP.Mod
 o2c.exe OPV.Mod
-o2c.exe CmdLine.Mod
+o2c.exe Win32.CmdLine.Mod
 o2c.exe O2ETHCLC.Mod
 
 o2c.exe Types.Mod
 o2c.exe Win32.Threads.Mod
 o2c.exe Win32.Exceptions.Mod
-o2c.exe Bootlink.Mod
+o2c.exe Win32.Bootlink.Mod
 o2c.exe O2ETHCLL.Mod
 
 o2l.exe O2ETHCLC.exe.Link

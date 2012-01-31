@@ -835,7 +835,7 @@ PROCEDURE SetColor*(VAR W: Writer; col: SHORTINT);
 BEGIN W.col := col
 END SetColor;
 
-(** Set writer W to verticall offset voff. Vertical offset controls the writing of super- and sub-scripts. *)
+(** Set writer W to vertical offset voff. Vertical offset controls the writing of super- and sub-scripts. *)
 PROCEDURE SetOffset*(VAR W: Writer; voff: SHORTINT);
 BEGIN W.voff := voff
 END SetOffset;
