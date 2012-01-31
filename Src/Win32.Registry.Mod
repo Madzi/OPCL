@@ -178,6 +178,7 @@ MODULE Registry; (** non-portable / source: Win32.Registry.Mod *)	(* ejz *)
 	BEGIN
 		Kernel32.OutputString := NIL; logfile := FALSE; hFile := Kernel32.InvalidHandleValue;
 		GetKeyValue(CurrentUser, oberonSystem, "Console", con);
+		IF res # Done THEN con := "StdOut"; SetKeyValue(CurrentUser, oberonSystem, "Console", con) END;
 		IF res = Done THEN
 			IF con[0] = '"' THEN con[0] := con[1] END;
 			IF CAP(con[0]) = "C" THEN (* console window *)
