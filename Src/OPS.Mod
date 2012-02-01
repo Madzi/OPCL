@@ -9,7 +9,7 @@ MODULE OPS;	(** non-portable *)
 
 	CONST
 		MaxStrLen* = 256;
-		MaxIdLen = 32;
+		MaxIdLen = 40;
 
 	TYPE
 		Name* = ARRAY MaxIdLen OF CHAR;
