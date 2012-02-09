@@ -99,6 +99,7 @@ MODULE OPP;	(** non-portable *)
 		END;
 		ObjFixDesc = RECORD (TypeFix)  obj: OPT.Object  END;
 		StructFixDesc = RECORD (TypeFix)  typ: OPT.Struct  END;
+		ObjCheckDesc = POINTER TO ARRAY OF RECORD  obj: OPT.Object;  level: SHORTINT  END;
 
 
 	VAR
@@ -119,7 +120,7 @@ MODULE OPP;	(** non-portable *)
 		ptrToRec: OPT.Struct;
 
 		ObjFix:  ARRAY 128 OF ObjFixDesc;
-		ObjCheck:  ARRAY 128 OF RECORD  obj: OPT.Object;  level: SHORTINT  END;
+		ObjCheck:  ObjCheckDesc;
 		TypFix:  ARRAY 128 OF StructFixDesc;
 		nofCheck, nofObjFix, nofTypFix: LONGINT;
 
@@ -191,7 +192,14 @@ MODULE OPP;	(** non-portable *)
 	END NewFix;
 
 	PROCEDURE NewCheck(obj: OPT.Object);
-	BEGIN  ObjCheck[nofCheck].obj := obj;  ObjCheck[nofCheck].level := level;  INC(nofCheck)
+	VAR  NewObjCheck: ObjCheckDesc; len: LONGINT;
+	BEGIN len := LEN(ObjCheck^);
+		IF nofCheck >= len THEN	(* if overflow then increase size of array ObjCheck *)
+			NEW(NewObjCheck, len*2);
+			WHILE len > 0 DO DEC(len); NewObjCheck^[len] := ObjCheck^[len] END;
+			ObjCheck := NewObjCheck; NewObjCheck := NIL;
+		END;
+		ObjCheck^[nofCheck].obj := obj;  ObjCheck^[nofCheck].level := level;  INC(nofCheck);
 	END NewCheck;
 
 	PROCEDURE NewType(obj: OPT.Object);	(*a new type is declared, do an early fix*)
@@ -2352,6 +2360,7 @@ OPM.LogWStr("  failed");*)
 	END Module;
 
 BEGIN
+	NEW(ObjCheck, 128);
 	SignOnMessage := "Oberon Parser (Active & X Extensions) / prk";
 	OPS.name := "INC"; OPT.Find(inc)
 END OPP.
