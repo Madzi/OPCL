@@ -37,7 +37,7 @@ MODULE Files; (** portable, except where noted / source: Win32.Files.Mod *)	(* e
 	TYPE
 		Writer* = OBJECT (AosIO.Writer)
 			VAR r: Rider;
-	
+
 			PROCEDURE Send(VAR buf: ARRAY OF CHAR;  ofs, len: LONGINT;  propagate: BOOLEAN;  VAR res: LONGINT);
 				VAR shiftedbuf: POINTER TO ARRAY OF CHAR; i : LONGINT;
 			BEGIN
@@ -62,9 +62,9 @@ MODULE Files; (** portable, except where noted / source: Win32.Files.Mod *)	(* e
 			END InitFileWriter;
 		END Writer;
 
-		Reader* = OBJECT (AosIO.Reader)	
+		Reader* = OBJECT (AosIO.Reader)
 			VAR r: Rider;
-	
+
 			PROCEDURE Receive(VAR buf: ARRAY OF CHAR;  ofs, size, min: LONGINT;  VAR len, res: LONGINT);
 				VAR shiftedbuf: POINTER TO ARRAY OF CHAR; i : LONGINT;
 			BEGIN

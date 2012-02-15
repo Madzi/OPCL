@@ -12,16 +12,16 @@ MODULE OPA;	(** non-portable *)
 		FileName = "OPA.Data";
 
 		none = -1;
-	
+
 		(*processor targets*)
 		i386 = 0;  i486 = 1;  Pentium = 2;  PentiumPro = 3;
 		FPU = 16;  Privileged = 17; MMX = 18; SSE = 19; SSE2 = 20;
-		
+
 		(* node classes for inline instructions*)
 		Nassembler = 29;
 		Ncode = 30;
 		Nfixup = 31;
-		
+
 		(* Own Symbol Table types *)
 		StLabel = 0; StFwdLabel = 1;
 		StConst = 3; StType = 4; StVar = 5; StVarPar = 6; StGlobal = 7;
@@ -34,22 +34,22 @@ MODULE OPA;	(** non-portable *)
 
 		RegAL = 09H; RegAX = 11H; RegEAX = 21H;		(* special cases with fixed register *)
 		RegDX = 12H; RegCL = 13H;
-		
+
 		Imm8 = 30H;	(* 8bit immediate *)
 		Imm16 = 31H;	(* 16bit immediate *)
 		Imm32 = 32H;	(* 32bit immediate *)
 		SImm8 = 35H;	(* 8bit signed immediate *)
 		Imm = 36H;	(* any immediate *)
-		
+
 		Const1 = 33H;								(* special case for rotate/shift *)
 		Const3 = 34H;								(* special case for INT 3 *)
-		
+
 			(* register / memory modes *)
 		RM = 40H; RM8 = 41H; RM16 = 42H; RM32 = 43H;
-		
+
 		MM = 44H;	(* mm/mm32 or mm/mm64 *)
 		MM32 = 45H; MM64 = 46H;
-		
+
 		XMM = 0A0H;	(* xmm/m32 or xmm/m64 or xmm/m128 *)
 		XMM32 = 0A1H;	(* xmm/m32 *)
 		XMM64 = 0A2H;	(* xmm/m64 *)
@@ -58,19 +58,19 @@ MODULE OPA;	(** non-portable *)
 			(* memory mode *)
 		M = 48H; M8 = 49H; M16 = 4AH; M32 = 4BH; M64 = 4CH; M80 = 4DH; M128 = 4EH;
 		(*M2 = 4EH;*)
-			
+
 		SReg = 50H;	(* Segment Register *)
 		RegCS = 51H; RegDS = 52H; RegES = 53H; RegFS = 54H;
 		RegGS = 55H; RegSS = 56H;
-		
+
 			(* Relative modes *)
 		Rel8 = 60H; Rel16 = 61H; Rel32 = 62H; FwdJmp = 63H;
-		
+
 			(* Special registers *)
 		CRReg = 70H; DRReg = 71H; TRReg = 72H;
 		FReg = 80H; FRegST = 81H;
-		
-		
+
+
 		(* Scanner: ASCII codes *)
 		TAB = 09X;
 		CR = 0DX;
@@ -99,12 +99,12 @@ MODULE OPA;	(** non-portable *)
 		ScPoint = 19;
 		ScLBrace = 20;
 		ScRBrace = 21;
-		
+
 		(* Structure sizes *)
 		NameLen = 32;
 		MaxStrLen = 256;
 		MnemoLen = 12;
-		
+
 		(* Opcodes modifiers *)
 		OmReg = 1;		(* register stored in the RM byte as reg/opcode *)
 		OmOp = 2;		(* register added to the opcode *)
@@ -117,11 +117,11 @@ MODULE OPA;	(** non-portable *)
 	TYPE
 		Name = OPS.Name;
 		Mnemo = ARRAY MnemoLen OF CHAR;
-		
+
 		(*Object: The symbol table. It's an ordered binary tree. First element is root.right *)
 		Object = POINTER TO ObjDesc;
 		FixPnt = POINTER TO FixPntDesc;
-		
+
 		InstrDesc = RECORD
 			name: Mnemo;
 			start, end: INTEGER;	 (* index in the opcode-tab *)
@@ -139,7 +139,7 @@ MODULE OPA;	(** non-portable *)
 			opc: INTEGER;			(* value stored in reg/opcode of modr/m. -1 = none *)
 			reg: INTEGER;			(* where is the register stored: none / rm /op *)
 		END;
-		
+
 		Operand = RECORD
 			mode: LONGINT;		(* the mode: Reg8.... *)
 			imm: LONGINT;		(* the constant *)
@@ -148,7 +148,7 @@ MODULE OPA;	(** non-portable *)
 			seg, scale: INTEGER;	(* segment override *)
 			obj: Object;			(* the jmp label for forward jumps / the object referenced *)
 		END;
-				
+
 		ObjDesc = RECORD
 			typ: LONGINT;
 			val, size:  LONGINT;		(* if typ <0 => pos of first use of this label *)
@@ -158,7 +158,7 @@ MODULE OPA;	(** non-portable *)
 			fix: FixPnt;
 			obj: OPT.Object
 		END;
-		
+
 		FixPntDesc = RECORD
 			pc: LONGINT;
 			node: OPT.Node;
@@ -176,13 +176,13 @@ VAR
 		SizeTab: ARRAY 17 OF SHORTINT;		(* size of the oberon types *)
 		TargetTab: ARRAY 32 OF RECORD  name: Name;  flag: SET  END;
 		TargetCount: LONGINT;
-		
+
 	(* Configuration *)
 		export, inline: BOOLEAN;		(* code is exported / inlined *)
 		FirstTime: BOOLEAN;		(* First time the module is used *)
 		Target: SET;						(* The target processor*)
 		pc: LONGINT;	(* program counter. Should be used only for pc-rel jumps !! *)
-		
+
 	(* Scanner variables *)
 		(*ch: CHAR;*)			(* look-ahead char is OPS.ch*)
 		sym: LONGINT; 	(* last token read *)
@@ -221,7 +221,7 @@ VAR
 (* Addressing Mode functions *)
 
 
-	
+
 	PROCEDURE ModeSize(mode: LONGINT): LONGINT;
 	BEGIN
 		CASE mode OF
@@ -242,7 +242,7 @@ VAR
 		ELSE RETURN(0)
 		END
 	END ModeSize;
-	
+
 	PROCEDURE ConstSize(i: LONGINT; signed: BOOLEAN):INTEGER;
 	BEGIN
 		IF (MIN(SHORTINT) <= i) & (MAX(SHORTINT) >= i) OR (~signed & (AND(i,0FFFFFF00H)=0)) THEN
@@ -253,39 +253,39 @@ VAR
 			RETURN(4)
 		END
 	END ConstSize;
-	
+
 	PROCEDURE IsRegMode(m: LONGINT; strict: BOOLEAN):BOOLEAN;
 	BEGIN
 		RETURN((m=Reg8)OR(m=Reg16)OR(m=Reg32)OR
 			(~strict &((m=RegAL)OR(m=RegAX)OR(m=RegEAX)OR(m=RegDX))))
 	END IsRegMode;
-	
+
 	PROCEDURE IsSRegMode(m: LONGINT; strict: BOOLEAN):BOOLEAN;
 	BEGIN
 		RETURN((m=SReg)OR (~strict &(m=RegCS)OR(m=RegDS)OR(m=RegES)OR
 			(m=RegFS)OR(m=RegGS)OR(m=RegSS)))
 	END IsSRegMode;
-	
+
 	PROCEDURE IsSpecRegMode(m: LONGINT):BOOLEAN;
 	BEGIN
 		RETURN((m=CRReg)OR(m=DRReg)OR(m=TRReg))
 	END IsSpecRegMode;
-	
+
 	PROCEDURE IsMMode(m: LONGINT):BOOLEAN;
 	BEGIN
 		RETURN((m=M)OR(m=M8)OR(m=M16)OR(m=M32)OR(m=M64)OR(m=M80) OR (m = M128))
 	END IsMMode;
-	
+
 	PROCEDURE IsRMMode(m: LONGINT):BOOLEAN;
 	BEGIN
 		RETURN((m=RM)OR(m=RM8)OR(m=RM16)OR(m=RM32) (*OR IsMMode(m)*))
 	END IsRMMode;
-	
+
 	PROCEDURE IsMMMode(m: LONGINT):BOOLEAN;
 	BEGIN
 		RETURN(m=MM)OR(m=MM32)OR(m=MM64)
 	END IsMMMode;
-	
+
 	PROCEDURE IsXMMMode(m: LONGINT): BOOLEAN;
 	BEGIN
 		RETURN (m = XMM) OR (m = XMM32) OR (m = XMM64) OR (m = XMM128)
@@ -295,7 +295,7 @@ VAR
 	BEGIN
 		RETURN((m=FReg) OR (~strict & (m=FRegST)))
 	END IsFRegMode;
-	
+
 	PROCEDURE IsRegister(mode: LONGINT): BOOLEAN;
 	BEGIN
 		RETURN IsRegMode(mode,TRUE) OR IsSRegMode(mode, FALSE) OR IsSpecRegMode(mode) OR (mode = MReg)
@@ -307,17 +307,17 @@ VAR
 		RETURN(IsRMMode(mode) OR IsMMode(mode) OR IsMMMode(mode) OR IsXMMMode(mode) OR
 						((regpos = OmReg) OR (regpos =  OmRM) OR (regpos =  OmRMReg)) & IsRegister(mode))
 	END NeedModRM;
-	
+
 	PROCEDURE IsImmMode(m: LONGINT):BOOLEAN;
 	BEGIN
 		RETURN((m=Imm8)OR(m=Imm16)OR(m=Imm32)OR(m=SImm8)OR(m=Imm))
 	END IsImmMode;
-	
+
 	PROCEDURE IsRelMode(m: LONGINT):BOOLEAN;
 	BEGIN
 		RETURN((m=Rel8)OR(m=Rel16)OR(m=Rel32))
 	END IsRelMode;
-	
+
 	PROCEDURE Evaluate(VAR op: Operand; mode: LONGINT): LONGINT;
 	BEGIN
 		IF mode = op.mode THEN RETURN Hit	(* 80% of the checks, now the 20% special cases *)
@@ -395,8 +395,8 @@ VAR
 		END;
 		RETURN NoMatch	(*fall through*)
 	END Evaluate;
-	
-	
+
+
 	PROCEDURE Match(ind: LONGINT; VAR op: ARRAY OF Operand): LONGINT;
 		VAR start, end, i, j, k, best: LONGINT;
 	BEGIN
@@ -427,7 +427,7 @@ VAR
 		IF ind = -1 THEN OPM.Mark(501, errpos) END;
 		RETURN ind
 	END Match;
-	
+
 
 (* ------------------------------------------------------------------- *)
 (* Symbol Table / Instr Table / Op Table  functions *)
@@ -511,7 +511,7 @@ VAR
 				k := (k + n) MOD InstrTabLen; INC(n, 1)
 		END
 	END HashFn;
-	
+
 	PROCEDURE FindInstruction(VAR name: ARRAY OF CHAR; VAR inx: LONGINT);
 		VAR n: LONGINT;
 	BEGIN
@@ -523,7 +523,7 @@ VAR
 		ELSIF (InstrTab[inx].target+Target # Target) THEN	OPM.err(515)
 		END
 	END FindInstruction;
-	
+
 (* ------------------------------------------------------------------- *)
 (* Scanner functions *)
 
@@ -546,7 +546,7 @@ VAR
 	END GetIdent;
 
 	PROCEDURE Get(VAR sym: LONGINT);
-	
+
 		PROCEDURE Comment;
 		BEGIN
 			OPM.Get(OPS.ch);
@@ -563,7 +563,7 @@ VAR
 				IF OPS.ch = OPM.Eot THEN OPM.Mark(5, OPM.errpos); EXIT END
 			END
 		END Comment;
-		
+
 		PROCEDURE Str;
 			VAR och: CHAR; i: LONGINT;
 		BEGIN
@@ -579,7 +579,7 @@ VAR
 			OPM.Get(OPS.ch);
 			str[i] := 0X; val := i;
 		END Str;
-		
+
 	BEGIN
 		skipBlanks;
 		OPM.errpos := OPM.curpos;
@@ -624,7 +624,7 @@ VAR
 		END
 
 	END Get;
-	
+
 	PROCEDURE Check(s: LONGINT);
 	BEGIN
 		IF sym # s THEN OPM.err(SHORT(s)) END;
@@ -669,7 +669,7 @@ VAR
 		ELSE OPM.err(40)
 		END
 	END Qualident;
-	
+
 	PROCEDURE Expression(VAR x: LONGINT);
 		VAR y, op : LONGINT;
 
@@ -682,7 +682,7 @@ VAR
 			ELSE OPM.err(601)
 			END
 		END Factor;
-	
+
 		PROCEDURE Term(VAR x: LONGINT);
 			VAR y, op : LONGINT;
 		BEGIN
@@ -693,7 +693,7 @@ VAR
 				IF op = ScMult THEN x := x * y ELSE x := x DIV y END
 			END
 		END Term;
-	
+
 	BEGIN
 		IF sym = ScMinus THEN op := sym; Get(sym); Term(x); x := -x
 		ELSE Term(x)
@@ -830,7 +830,7 @@ VAR
 			o.mode := none; OPM.err(511)
 		END;  (* CASE sym OF *)
 	END GetOperand;
-	
+
 (* ------------------------------------------------------------------- *)
 (* Fixpoint handling functions *)
 
@@ -877,7 +877,7 @@ VAR
 			disp := disp DIV 256
 		END;
 	END FixDisp;
-	
+
 (* ------------------------------------------------------------------- *)
 (* Code Generation functions *)
 
@@ -997,14 +997,14 @@ BEGIN
 		END
 	END;
 	COPY(InstrTab[ind].name, name);
-	
+
 	instr := Match(ind, op);
 	IF instr < 0 THEN RETURN END;	(* no matching opcode found *)
-	
+
 (* Instruction prefix *)
 	UseSpecReg := IsSpecRegMode(OpTab[instr].op[0]) OR IsSpecRegMode(OpTab[instr].op[1]);
 	UseSegReg := IsSRegMode(OpTab[instr].op[0], FALSE) OR IsSRegMode(OpTab[instr].op[1], FALSE);
-	
+
 	IF ~UseSpecReg & ~UseSegReg &
 		(name[0] # "F") & (		(* float instruction always have different opcodes for M16 *)
 		((name = "OUT") & (ModeSize(OpTab[instr].op[1]) = 2)) OR
@@ -1015,9 +1015,9 @@ BEGIN
 			PutByte(66H)
 		END
 	END;
-	
+
 	(* IF MMX IN InstrTab[ind].target THEN PutByte(0FH) END; *)
-		
+
 (* prepare the instruction*)
 		seg := none; reg := none; modrm := 0; UseRM := FALSE; sib := none;
 		UseImm := FALSE; fixobj := NIL;
@@ -1061,7 +1061,7 @@ BEGIN
 
 (* segment override *)
 		IF seg # none THEN PutByte(seg) END;
-		
+
 (* opcode *)
 		IF reg = none THEN reg := 0 END;
 		IF OpTab[instr].op2 # none THEN
@@ -1079,10 +1079,10 @@ BEGIN
 			UseRM := TRUE
 		END;
 		IF UseRM THEN PutByte(modrm) END;
-		
+
 	(* sib *)
 		IF sib # none THEN PutByte(sib) END;
-		
+
 	(* displacement / immediate *)
 		IF  UseDisp THEN
 			IF fixobj # NIL THEN InsertFix(fixobj, pc) END;
@@ -1152,7 +1152,7 @@ END GenCode;
 				errpos := OPM.errpos;
 				Get(sym);
 				IF ind < 0 THEN OPM.err(502); RETURN END;
-				
+
 				name[3] := 0X;
 				IF name = "REP" THEN	(* REP/REPE/REPZ/REPNE/REPNZ *)
 					GenCode(ind, op);
@@ -1162,7 +1162,7 @@ END GenCode;
 					Get(sym);
 					IF ind < 0 THEN OPM.err(502); RETURN END
 				END;
-				
+
 				i := 0;
 				IF sym # ScCR THEN
 					LOOP
@@ -1171,7 +1171,7 @@ END GenCode;
 						Get(sym)
 					END
 				END;
-				
+
 				GenCode(ind, op);
 			END (* IF DB *)
 	END ParseInstruction;
@@ -1196,7 +1196,7 @@ END GenCode;
 			END
 		END
 	END ParseTarget;
-	
+
 (* ------------------------------------------------------------------- *)
 (* Initialisation functions *)
 
@@ -1205,7 +1205,7 @@ END GenCode;
 	BEGIN
 		insert(name, obj); obj.typ := t; obj.val := v; obj.size := 0
 	END InsertReg;
-	
+
 	PROCEDURE InsertType(name: ARRAY OF CHAR; s: LONGINT);
 		VAR obj: Object;
 	BEGIN
@@ -1240,13 +1240,13 @@ END GenCode;
 			InsertReg("CS", RegCS, 1H); InsertReg("SS", RegSS, 2H);
 			InsertReg("DS", RegDS, 3H); InsertReg("ES", RegES, 0H);
 			InsertReg("FS", RegFS, 4H); InsertReg("GS", RegGS, 5H);
-			
+
 			InsertReg("CR0", CRReg, 0); InsertReg("CR2", CRReg, 2); InsertReg("CR3", CRReg, 3);
 			InsertReg("CR4", CRReg, 4);
 			InsertReg("DR0", DRReg, 0); InsertReg("DR1", DRReg, 1); InsertReg("DR2", DRReg, 2);
 			InsertReg("DR3", DRReg, 3); InsertReg("DR6", DRReg, 6); InsertReg("DR7", DRReg, 7);
 			(*InsertReg("TR6", TRReg, 6); InsertReg("TR7", TRReg, 7);*)
-			
+
 			InsertReg("ST", FReg, 0);
 
 			InsertType("BYTE", 1);
@@ -1254,22 +1254,22 @@ END GenCode;
 			InsertType("DWORD", 4);
 			InsertType("QWORD", 8);
 			InsertType("TBYTE", 10);
-			
+
 		(* Global variables *)
 			pc := 0; Target := {}
 	END Init;
-	
+
 	PROCEDURE Close;
 	BEGIN root.right := NIL;
 	END Close;
-	
+
 	PROCEDURE InsertTarget(name: ARRAY OF CHAR; flag: SET);
 	BEGIN
 		COPY(name, TargetTab[TargetCount].name);
 		TargetTab[TargetCount].flag := flag;
 		INC(TargetCount);
 	END InsertTarget;
-	
+
 	PROCEDURE BodyInit;
 		VAR s: INTEGER; i: LONGINT; f: Files.File; r: Files.Rider;
 	BEGIN
@@ -1297,7 +1297,7 @@ END GenCode;
 		ELSE
 			OPM.LogWLn; OPM.LogWStr(FileName); OPM.LogWStr(" not found, ASM not ready")
 		END;
-		
+
 		SizeTab[0] := 0; SizeTab[1] := 1; SizeTab[2] := 1; SizeTab[3] := 1;
 		SizeTab[4] := 1; SizeTab[5] := 2; SizeTab[6] := 4; SizeTab[7] := 4;
 		SizeTab[8] := 8; SizeTab[9] := 4; SizeTab[10] := 4; SizeTab[11] := 4;

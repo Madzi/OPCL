@@ -17,7 +17,7 @@ MODULE OPV;	(** non-portable *)
 		(* object modes *)
 		Var = 1; VarPar = 2; Con = 3; Fld = 4; Typ = 5; LProc = 6; XProc = 7;
 		SProc = 8; CProc = 9; IProc = 10; Mod = 11; Head = 12; TProc = 13;
-		
+
 		(* item mode *)
 		Abs = OPO.Abs;
 
@@ -36,11 +36,11 @@ MODULE OPV;	(** non-portable *)
 		Undef = 0; Byte = 1; Bool = 2; Char = 3; SInt = 4; Int = 5; LInt = 6;
 		Real = 7; LReal = 8; Set = 9; String = 10; NilTyp = 11; NoTyp = 12;
 		Pointer = 13; ProcTyp = 14; Comp = 15;
-		
+
 		(* composite structure forms *)
 		Basic = 1; StaticArr = 2; SDynArr = 3; DynArr = 4; OpenArr = 5; Record = 6;
 		ArraySet = {StaticArr, SDynArr, DynArr, OpenArr};
-		
+
 		(* Arrays extlev *)
 		static = 0; dynamic = 1; sdynamic = 2;
 
@@ -104,7 +104,7 @@ Statements
 
 	TYPE
 		ParamAdrProc = PROCEDURE (VAR firstPar: OPT.Object; VAR psize, dsize: LONGINT; TProc, Inline, allocDesc: BOOLEAN);
-		
+
 	VAR
 		dumpCode*: BOOLEAN; (* set by OP2 *)
 		ProcName*: OPS.Name; (* accessed by OPI (read only) *)
@@ -114,7 +114,7 @@ Statements
 		allocTd: BOOLEAN; 	(* allocTd used only by OM *)
 		dummy: OPC.Item;
 		ParamAdr: ARRAY 6 OF  ParamAdrProc;
-	
+
 	PROCEDURE Init* (bpc: LONGINT);
 		VAR res: INTEGER;
 	BEGIN
@@ -129,7 +129,7 @@ Statements
 		ELSE OPM.err(242)
 		END
 	END IncAdr;
-	
+
 	PROCEDURE AlignFld(VAR offset: LONGINT; elemsize: LONGINT);
 	(* offset is initialized to base type size, 0 if none *)
 	BEGIN
@@ -137,22 +137,22 @@ Statements
 		ELSIF elemsize = 2 THEN IncAdr(offset, offset MOD 2)
 		END
 	END AlignFld;
-	
+
 	PROCEDURE AllocFld(VAR offset, this: LONGINT; elemsize: LONGINT);
 	BEGIN
 		this := offset; IncAdr(offset, elemsize)
 	END AllocFld;
-	
+
 	PROCEDURE AlignRec(VAR size: LONGINT);
 	BEGIN
 		IncAdr(size, (-size) MOD 4)
 	END AlignRec;
-	
+
 	PROCEDURE AlignPar(VAR elemsize: LONGINT);
 	BEGIN
 		IncAdr(elemsize, (-elemsize) MOD 4)
 	END AlignPar;
-	
+
 	PROCEDURE AllocPar (VAR adr, this: LONGINT; elemsize: LONGINT);
 	BEGIN
 		IncAdr(adr, elemsize); this := adr
@@ -164,12 +164,12 @@ Statements
 		ELSIF elemsize = 2 THEN IncAdr(adr, - (adr MOD 2))
 		END
 	END AlignVar;
-	
+
 	PROCEDURE AllocVar(VAR adr, this: LONGINT; elemsize: LONGINT);
 	BEGIN
 		IncAdr(adr, -elemsize); this := adr
 	END AllocVar;
-	
+
 	PROCEDURE AlignBlock(adr: LONGINT; VAR dsize: LONGINT);
 	BEGIN
 		IncAdr(adr, - (adr MOD 4)); dsize := -adr
@@ -350,7 +350,7 @@ Statements
 			END
 		END
 	END ParamAdrRL;
-	
+
 	PROCEDURE VarAdr(var: OPT.Object; VAR dsize: LONGINT);
 		VAR adr, s: LONGINT; list: OPT.Object;	(* used by the inline feature *)
 	BEGIN
@@ -394,7 +394,7 @@ Statements
 		AlignPar (size);
 		RETURN size
 	END ArgSize;
-	
+
 	PROCEDURE ProcSize0(obj: OPT.Object; firstpass: BOOLEAN);
 		VAR psize, entryNr: LONGINT; oldPos: OPM.TextPos;
 	BEGIN
@@ -434,7 +434,7 @@ Statements
 		ELSE ProcSize0 (obj, firstpass)
 		END
 	END ProcSize;
-	
+
 	PROCEDURE FindMth(curmod: LONGINT; VAR name: OPS.Name; typ: OPT.Struct; VAR res: OPT.Object);	(*has a semantic different from OPT.FindField: the viewpoint is not (always) the current module*)
 		VAR obj: OPT.Object;
 	BEGIN res:=NIL;
@@ -502,7 +502,7 @@ END TypeName;
 
 	PROCEDURE AssignTent (obj: OPT.Object);	(* mfix *)
 		VAR typ: OPT.Struct;
-		
+
 		PROCEDURE AssignBody(body: OPT.Object);
 			VAR entryNr: LONGINT;
 		BEGIN
@@ -587,7 +587,7 @@ END TypeName;
 		END;
 		allocTd := TRUE
 	END AssignEntries;
-	
+
 	PROCEDURE AssignOwnEntries(obj: OPT.Object);
 	VAR size: LONGINT;
 	BEGIN
@@ -609,7 +609,7 @@ END TypeName;
 		END;
 		allocTd := TRUE
 	END AssignOwnEntries;
-	
+
 	PROCEDURE AllocAddEntries(obj: OPT.Object);
 	VAR typ: OPT.Struct;
 	BEGIN
@@ -730,7 +730,7 @@ END TypeName;
 
 	PROCEDURE CallLR(proc: OPT.Node; VAR res: OPC.Item; assignment: BOOLEAN);
 	VAR	 firstap, ap: OPT.Node; firstfp, fp: OPT.Object; x, dynptr, tos: OPC.Item; s, dynblocks, staticsize: LONGINT; tproc: BOOLEAN;
-	
+
 		PROCEDURE AllocTempSpace(VAR dynblocks, staticsize: LONGINT; ap: OPT.Node; fp: OPT.Object);	(*traverse in reverse order!*)
 		VAR tos: OPC.Item;
 		BEGIN
@@ -748,24 +748,24 @@ END TypeName;
 				END
 			END
 		END AllocTempSpace;
-		
+
 	BEGIN
 		IF ~assignment THEN  OPC.PushRegs  END;	(*be sure nothing is pushed in that case!*)
 		firstap := proc.right; firstfp := proc.obj;
 		tproc := (proc.left.obj#NIL)&(proc.left.obj.mode = TProc);
 		IF tproc THEN  firstap := firstap.link; firstfp := firstfp.link  END;	(*skip self*)
-		
+
 			(*temporary values*)
 		staticsize := 0; dynblocks := 0;
 		AllocTempSpace(dynblocks, staticsize, firstap, firstfp);  OPC.AllocateStatic(tos, staticsize);
-		
+
 			(*return descriptor*)
 		IF proc.typ.form=Comp THEN
 			OPC.CorrectStackAdr(res, staticsize, dynblocks);	(*correction for static allocated ret areas*)
 			OPC.PushRetDesc(res, tos);
 		END;
 		dynptr := tos; OPC.CorrectStackAdr(dynptr, staticsize, 0);
-		
+
 			(*parameters*)
 		ap := firstap; fp := firstfp;
 		WHILE ap # NIL DO
@@ -801,7 +801,7 @@ END TypeName;
 		IF tproc THEN
 			Expression(proc.right, x, NIL);  OPC.Parameter(x, proc.obj, proc.right.class=Nderef, FALSE)
 		END;
-		
+
 			(*activation*)
 		IF proc.subcl = 2 THEN	(*inlined*)
 			Statement(proc.left, NIL)
@@ -822,7 +822,7 @@ END TypeName;
 			OPC.PopResult(proc, res)
 		END;
 	END CallLR;
-	
+
 	PROCEDURE CallRL(proc: OPT.Node; VAR res: OPC.Item; assignment: BOOLEAN);
 		VAR ap: OPC.Item; n, p, q: OPT.Node; fp, formPar: OPT.Object;
 	BEGIN
@@ -859,7 +859,7 @@ END TypeName;
 			OPC.PopResult(proc, res); (* pop register and put result into z *)
 		END
 	END CallRL;
-	
+
 	PROCEDURE Call(proc: OPT.Node; VAR res: OPC.Item; assignment: BOOLEAN);
 	VAR  obj: OPT.Object; n: OPT.Node; i: LONGINT;
 	BEGIN
@@ -881,10 +881,10 @@ END TypeName;
 			END
 		END
 	END Call;
-	
+
 	PROCEDURE Expression (n: OPT.Node; VAR z: OPC.Item; selfForUnlock: OPT.Node);
 		VAR x, y: OPC.Item; f: INTEGER; real: REAL; con: OPT.Const; typ: OPT.Struct;
-		
+
 		PROCEDURE AllocConst (VAR bytes: ARRAY OF SYSTEM.BYTE; len, align: LONGINT);
 			VAR con1, con2: OPT.Const;
 		BEGIN
@@ -896,7 +896,7 @@ END TypeName;
 				con1.intval := con2.intval
 			END
 		END AllocConst;
-		
+
 	BEGIN
 		z.node := NIL;
 		CASE n.class OF
@@ -999,7 +999,7 @@ END TypeName;
 		END;
 		z.typ := n.typ;
 	END Expression;
-	
+
 	PROCEDURE IfStat (n, selfForUnlock: OPT.Node; VAR Lfix, Lcfix: OPC.Label; else: BOOLEAN);
 		VAR x: OPC.Item;
 	BEGIN
@@ -1012,7 +1012,7 @@ END TypeName;
 		END;
 		IF else THEN OPC.Jmp (Lfix, n) END
 	END IfStat;
-	
+
 	PROCEDURE CaseStat (n, selfForUnlock: OPT.Node);
 		VAR
 			case, interval: OPT.Node;
@@ -1049,10 +1049,10 @@ END TypeName;
 		ASSERT(typ.comp IN {StaticArr, DynArr, OpenArr});
 		Expression(n, len, NIL);
 		IF len.mode # Con THEN OPC.PushLen(len); OPC.GenDimTrap(len) END;
-		
+
 		IF nofdim = 1 THEN  nofelem:=len; nofelem.typ:=OPT.linttyp
 		ELSE  OPC.MulDim(nofelem, len)  END;
-		
+
 		IF n.link # NIL THEN
 			Dim(z, nofelem, n.link, typ.BaseTyp, nofdim+1)
 		ELSE
@@ -1282,9 +1282,9 @@ END TypeName;
 			n := n.link
 		END;
 	END Statement;
-	
-	
-	
+
+
+
 	PROCEDURE Module* (prog: OPT.Node);
 	BEGIN
 		Statement (prog, NIL);

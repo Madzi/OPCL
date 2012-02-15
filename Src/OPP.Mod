@@ -7,7 +7,7 @@ Refer to the "General ETH Oberon System Source License" contract available at: h
 
 MODULE OPP;	(** non-portable *)
 	IMPORT OPT, OPS, OPM, OPB, OPA;
-		
+
 	CONST
 		(* numtyp values *)
 		char = 1; integer = 2; real = 3; longreal = 4;
@@ -40,11 +40,11 @@ MODULE OPP;	(** non-portable *)
 		Real = 7; LReal = 8; Set = 9; String = 10; NilTyp = 11; NoTyp = 12;
 		Pointer = 13; ProcTyp = 14; Comp = 15;
 		intSet = {SInt..LInt};
-		
+
 		(* composite structure forms *)
 		Basic = 1; StaticArr = 2; SDynArr = 3; DynArr = 4; OpenArr = 5; Record = 6;
 		ArraySet = {StaticArr, SDynArr, DynArr, OpenArr};
-		
+
 		(*function number*)
 		haltfn = 0; newfn = 1; sizefn = 12; incfn = 13; lenfn = 17; sysnewfn = 30;
 		awaitfn = 64;
@@ -59,24 +59,24 @@ MODULE OPP;	(** non-portable *)
 
 		(* node subclasses *)
 		super = 1;
-		
+
 		(* module visibility of objects *)
 		internal = 0; external = 1; externalR = 2;
 
 		(* procedure flags (conval^.setval) *)
 		hasBody = 1; isRedef = 2; slNeeded = 3; locked =6; asmProc = 7; operatorFlag = 8;
 		checkOverwriting = 31;	(*set in record.strobj when field/mth overwriting check is delayed because base is undef*)
-		
+
 		(* record flags (flags) *)
 		protectedObj = 4; activeObj = 5; safe = 8;
-		
+
 		(* sysflag *) (* ejz *)
 		notag = 1; stdcall = 2; cdecl = 3; untraced = 4; delegate = 5;
 		systemtype = 6;	(*implicitly generated type for arr of ptrs, allocate only when used*)
 
 		(* the hidden parameter for methods *)
 		HiddenSelf = "@SELF";
-	
+
 	TYPE
 		CaseTable = ARRAY OPM.MaxCases OF
 			RECORD
@@ -86,7 +86,7 @@ MODULE OPP;	(** non-portable *)
 	CONST
 		FTarget = 1; FExpr = 2; FAssign = 3; FCall = 4; FCond = 5;
 		FParam = 6; FPassExpr = 7; FReturn = 9;
-		
+
 	TYPE
 		FixPtr = POINTER TO FixDesc;		(* late parsing *)
 		FixDesc = RECORD
@@ -99,7 +99,7 @@ MODULE OPP;	(** non-portable *)
 		StructFixDesc = RECORD (TypeFix)  typ: OPT.Struct  END;
 		ObjCheckDesc = POINTER TO ARRAY OF RECORD  obj: OPT.Object;  level: SHORTINT  END;
 
-		
+
 	VAR
 		SignOnMessage*: ARRAY 80 OF CHAR;
 		sym, level: SHORTINT;
@@ -111,12 +111,12 @@ MODULE OPP;	(** non-portable *)
 		UndefFlag, FixPhase: BOOLEAN;
 		UndefObj: OPT.Object;
 		scopeLock: BOOLEAN;	(*current or any parent statement block locked *)
-		
+
 		FixList, FixLast: FixPtr;
 		ExtObj: OPT.Object;		(*for searching in the module scope*)
 		inc: OPT.Object;	(* the INC sproc, used by trace *)
 		ptrToRec: OPT.Struct;
-		
+
 		ObjFix:  ARRAY 128 OF ObjFixDesc;
 		ObjCheck:  ObjCheckDesc;
 		TypFix:  ARRAY 128 OF StructFixDesc;
@@ -136,7 +136,7 @@ MODULE OPP;	(** non-portable *)
 	BEGIN
 		RETURN OPT.topScope^.link^.mode = Mod
 	END IsModuleScope;
-	
+
 	PROCEDURE IsObjectScope ():BOOLEAN;
 	BEGIN
 		RETURN OPT.topScope^.link^.mode = Typ
@@ -152,12 +152,12 @@ MODULE OPP;	(** non-portable *)
 	BEGIN
 		obj^.conval^.setval := obj^.conval^.setval + flag
 	END SetFlags;
-	
+
 	PROCEDURE GetFlags (obj: OPT.Object):SET;
 	BEGIN
 		RETURN obj^.conval^.setval
 	END GetFlags;
-	
+
 	PROCEDURE DumpScope(o: OPT.Object);
 	BEGIN
 		IF o # NIL THEN
@@ -166,7 +166,7 @@ MODULE OPP;	(** non-portable *)
 			DumpScope(o.right);
 		END
 	END DumpScope;
-	
+
 	PROCEDURE GetSelf():OPT.Object;
 		VAR self: OPT.Object;
 	BEGIN
@@ -185,11 +185,11 @@ MODULE OPP;	(** non-portable *)
 		FixLast := fix;
 		node.link := NIL
 	END InsertFix;
-	
+
 	PROCEDURE NewFix(VAR f: TypeFix; name: OPS.Name);
 	BEGIN  f.pos := OPM.errpos; f.scope := OPT.topScope; f.name := name; f.level := level
 	END NewFix;
-	
+
 	PROCEDURE NewCheck(obj: OPT.Object);
 	VAR  NewObjCheck: ObjCheckDesc; len: LONGINT;
 	BEGIN len := LEN(ObjCheck^);
@@ -200,7 +200,7 @@ MODULE OPP;	(** non-portable *)
 		END;
 		ObjCheck^[nofCheck].obj := obj;  ObjCheck^[nofCheck].level := level;  INC(nofCheck);
 	END NewCheck;
-	
+
 	PROCEDURE NewType(obj: OPT.Object);	(*a new type is declared, do an early fix*)
 	VAR  i: LONGINT; old: SHORTINT;
 	BEGIN
@@ -239,7 +239,7 @@ MODULE OPP;	(** non-portable *)
 			INC(i)
 		END;
 	END NewType;
-	
+
 	PROCEDURE CheckRecord(typ: OPT.Struct);
 	CONST stamp = 1234H;
 	VAR t, base: OPT.Struct;
@@ -276,7 +276,7 @@ MODULE OPP;	(** non-portable *)
 		END;
 		IF base = NIL THEN
 			(*ok*)
-		ELSIF base = OPT.undftyp THEN	
+		ELSIF base = OPT.undftyp THEN
 			typ.BaseTyp := NIL; err(999)	(* wrong base type *)
 		ELSE
 			IF base.form = Pointer THEN
@@ -301,7 +301,7 @@ MODULE OPP;	(** non-portable *)
 		END;
 		typ.incomplete := FALSE
 	END CheckRecord;
-	
+
 	PROCEDURE CheckArray(typ: OPT.Struct);
 	VAR base: OPT.Struct;
 	BEGIN
@@ -325,7 +325,7 @@ MODULE OPP;	(** non-portable *)
 		END;
 		typ.incomplete := FALSE
 	END CheckArray;
-	
+
 	PROCEDURE CheckPointer(typ: OPT.Struct);
 	VAR base: OPT.Struct;
 	BEGIN
@@ -338,7 +338,7 @@ MODULE OPP;	(** non-portable *)
 		END;
 		typ.incomplete := FALSE
 	END CheckPointer;
-	
+
 	PROCEDURE CheckProcedure(typ: OPT.Struct);
 	VAR par: OPT.Object; quit: BOOLEAN;
 	BEGIN
@@ -351,7 +351,7 @@ MODULE OPP;	(** non-portable *)
 		CheckStruct(typ.BaseTyp);
 		typ.incomplete := quit OR typ.BaseTyp.incomplete;
 	END CheckProcedure;
-	
+
 	PROCEDURE CheckStruct(str: OPT.Struct);
 	BEGIN
 		IF ~str.incomplete OR (str = OPT.ToBeFixed) THEN  RETURN  END;
@@ -362,7 +362,7 @@ MODULE OPP;	(** non-portable *)
 		ELSE  OPM.err(200)
 		END
 	END CheckStruct;
-	
+
 	PROCEDURE CheckObj(obj: OPT.Object);
 	BEGIN
 		IF (obj.mode IN {XProc, LProc}) & (obj.typ = NIL) & FixPhase THEN	(*avoid NIL trap when no return type is defined*)
@@ -373,7 +373,7 @@ MODULE OPP;	(** non-portable *)
 		IF (obj.typ.comp = SDynArr) & (level = 0) THEN OPM.Mark(90, obj.txtpos)
 		ELSE
 			CASE obj.mode OF
-			| Var, VarPar:	
+			| Var, VarPar:
 						IF OPT.param IN obj.flag THEN
 							IF obj.typ.comp = DynArr THEN OPM.Mark(91, obj.txtpos)  END;
 						ELSE
@@ -386,7 +386,7 @@ MODULE OPP;	(** non-portable *)
 			END;
 		END;
 	END CheckObj;
-	
+
 	PROCEDURE qualident(VAR id: OPT.Object);
 		VAR obj, self: OPT.Object; lev: LONGINT; m: BOOLEAN;
 	BEGIN (*sym = ident*)
@@ -420,7 +420,7 @@ MODULE OPP;	(** non-portable *)
 		id := obj;
 		IF (id = UndefObj) & (OPM.oberon1 IN OPM.parserOptions) THEN err(260) END
 	END qualident;
-	
+
 	PROCEDURE ConstExpression(VAR x: OPT.Node);
 	VAR tmp: BOOLEAN;
 	BEGIN
@@ -444,7 +444,7 @@ MODULE OPP;	(** non-portable *)
 		ELSE vis := internal
 		END
 	END CheckMark;
-	
+
 	PROCEDURE CheckSysFlag(VAR sysflag: SHORTINT; default: SHORTINT; allowed: SET);	(* ejz *)
 		VAR x: OPT.Node; sf: LONGINT;
 	BEGIN
@@ -490,7 +490,7 @@ MODULE OPP;	(** non-portable *)
 
 	PROCEDURE BlockMode (VAR flag: SET;  local: BOOLEAN;  VAR lock: BOOLEAN);
 		VAR x: OPT.Node; objscope: BOOLEAN;
-	
+
 		PROCEDURE ProtectScope();
 			VAR p: OPT.Object;
 		BEGIN
@@ -502,7 +502,7 @@ MODULE OPP;	(** non-portable *)
 			END;
 			INCL(p.link.conval.setval, protectedObj)
 		END ProtectScope;
-	
+
 	BEGIN
 		lock := FALSE;
 		objscope := IsObjectScope();
@@ -617,7 +617,7 @@ MODULE OPP;	(** non-portable *)
 		END;
 		level := lev; OPT.CloseScope;
 	END RecordType;
-	
+
 	PROCEDURE OwnScope(VAR obj: OPT.Object);
 	BEGIN
 		IF ~(obj.mode IN {Con, Typ, SProc}) THEN
@@ -628,7 +628,7 @@ MODULE OPP;	(** non-portable *)
 
 	PROCEDURE ArrayType(VAR typ, banned: OPT.Struct);
 	VAR	x: OPT.Node; n: LONGINT;  sysflag: SHORTINT;
-	
+
 		PROCEDURE HiddenVar (name: ARRAY OF CHAR; exp: OPT.Node): OPT.Object;
 			VAR dim, owner: OPT.Object; y: OPT.Node;
 		BEGIN
@@ -721,7 +721,7 @@ MODULE OPP;	(** non-portable *)
 			CheckPointer(typ);
 		END;
 	END PointerType;
-	
+
 	PROCEDURE FormalParameters(VAR firstPar: OPT.Object; VAR resTyp: OPT.Struct;  sysflag: SHORTINT);
 		VAR mode: SHORTINT;
 				par, first, last, res: OPT.Object; typ, btyp: OPT.Struct;
@@ -876,7 +876,7 @@ MODULE OPP;	(** non-portable *)
 			OPS.Get(sym)
 		END
 	END TypeDecl;
-	
+
 	PROCEDURE selector(VAR x: OPT.Node);
 		VAR obj, proc: OPT.Object; y: OPT.Node; typ: OPT.Struct; name: OPS.Name;
 	BEGIN
@@ -1077,10 +1077,10 @@ MODULE OPP;	(** non-portable *)
 		IF flag THEN OPB.verify := OwnScope; FixPhase := flag1 END;
 		IF (level > 0) & ((m = newfn) OR (m = sysnewfn)) THEN OPT.topScope^.link^.leaf := FALSE END
 	END StandProcCall;
-	
+
 	PROCEDURE InlineProc(VAR x: OPT.Node; VAR apar: OPT.Node; fpar: OPT.Object);			(* Inline *)
 		VAR inline, par, list: OPT.Object; glueCode, src, trg: OPT.Node; assembly: BOOLEAN; c: OPT.Const;
-		
+
 			PROCEDURE CopyLocals(obj: OPT.Object);
 				VAR	new: OPT.Object; name: OPS.Name; i, j: LONGINT;
 			BEGIN
@@ -1102,7 +1102,7 @@ MODULE OPP;	(** non-portable *)
 					CopyLocals(obj^.right)
 				END
 			END CopyLocals;
-			
+
 	BEGIN
 			inline := x^.obj; assembly := asmProc IN inline^.conval^.setval;
 		(* get parameters *)
@@ -1156,7 +1156,7 @@ MODULE OPP;	(** non-portable *)
 				END
 			END
 	END InlineProc;
-	
+
 	PROCEDURE Element(VAR x: OPT.Node);
 		VAR y: OPT.Node;
 	BEGIN Expression(x);
@@ -1184,12 +1184,12 @@ MODULE OPP;	(** non-portable *)
 		END ;
 		CheckSym(rbrace)
 	END Sets;
-	
+
 	PROCEDURE Resolve(VAR obj: OPT.Object; name: ARRAY OF CHAR; VAR x, y: OPT.Node);
 	BEGIN
 		obj:=OPT.Resolve(name, x, y); OPT.MarkObj (obj)
 	END Resolve;
-	
+
 	PROCEDURE OpCall(VAR op: OPT.Object; VAR x: OPT.Node; y: OPT.Node);
 		VAR fpar: OPT.Object; proc, apar, last, retlist, lastret: OPT.Node;
 	BEGIN apar:=NIL; last:=NIL; retlist:=NIL; lastret:=NIL;
@@ -1291,7 +1291,7 @@ MODULE OPP;	(** non-portable *)
 		END;
 		UndefFlag := UndefFlag OR b;
 	END Term;
-	
+
 	PROCEDURE SimpleExpression(VAR x: OPT.Node);
 		VAR
 			y: OPT.Node; addop : SHORTINT; name: OPS.Name; op: OPT.Object;
@@ -1319,7 +1319,7 @@ MODULE OPP;	(** non-portable *)
 		END;
 		UndefFlag := UndefFlag OR b;
 	END SimpleExpression;
-	
+
 	PROCEDURE Expression(VAR x: OPT.Node);
 		VAR y: OPT.Node; obj: OPT.Object; relation: SHORTINT; name: OPS.Name;
 	BEGIN SimpleExpression(x);
@@ -1354,7 +1354,7 @@ MODULE OPP;	(** non-portable *)
 			END
 		END
 	END Expression;
-	
+
 	PROCEDURE ProcedureDeclaration(VAR x: OPT.Node);
 		 (* operator prio =126
 			 sentinel prio = 127
@@ -1458,7 +1458,7 @@ MODULE OPP;	(** non-portable *)
 			END;
 			x := procdec;
 		END Body;
-		
+
 		PROCEDURE Receiver;
 			VAR obj: OPT.Object; rec: OPT.Struct;
 		BEGIN
@@ -1492,7 +1492,7 @@ MODULE OPP;	(** non-portable *)
 				CheckSym(rparen)
 			END
 		END Receiver;
-		
+
 	BEGIN
 		(* init vars *)
 		forward := FALSE; scope := OPT.topScope;
@@ -1501,7 +1501,7 @@ MODULE OPP;	(** non-portable *)
 
 		IF sym = arrow THEN forward := TRUE; OPS.Get(sym) END;
 		Receiver;	(* set mode + scope + selfXYZ vars *)
-		
+
 		(* special modes *)
 		IF (sym # ident) & (sym # string) & (sym # number) THEN
 			IF sym = lbrak THEN
@@ -1543,7 +1543,7 @@ MODULE OPP;	(** non-portable *)
 			name := OPS.name; CheckMark(vis, TRUE);
 			IF init THEN vis := external END;
 			IF (vis # internal) & (mode = LProc) THEN mode := XProc END ;
-			
+
 			(* false forwards *)
 			IF (fwd # NIL) & (~(fwd.mode IN {TProc, LProc, XProc, CProc, IProc}) OR ((fwd.mnolev >= 0) & (fwd.mnolev # level)) OR ((mode=TProc) & (fwd.mode#TProc)) OR (prio=126)) THEN
 				fwd := NIL
@@ -1562,18 +1562,18 @@ MODULE OPP;	(** non-portable *)
 				IF hasBody IN fwd.conval.setval THEN err(1) END;
 				proc := OPT.NewObj(); proc^.leaf := TRUE;
 			END;
-			
+
 			proc.mode := mode; proc.vis := vis;
 			proc.conval := OPT.NewConst(); proc.conval.setval := flags;
 			IF IsObjectScope() & (selfrec.BaseTyp # NIL) & selfrec.BaseTyp.incomplete THEN
 				SetFlags(OPT.topScope.link, {checkOverwriting});
 				proc.conval.errpos := OPM.errpos;
 			END;
-			
+
 			(* general limitations and link setup *)
 			IF (mode # LProc) & (level > 0) THEN err(73) END ;
 			IF init THEN OPT.topScope.link.link2 := proc END;
-			
+
 			(* parse params+body *)
 			OPT.topScope := scope;
 			INC(level); OPT.OpenScope(level, proc); OPT.topScope.errpos := OPM.errpos;
@@ -1581,7 +1581,7 @@ MODULE OPP;	(** non-portable *)
 			GetParam;
 			IF ~forward THEN Body END;
 			DEC(level); OPT.CloseScope;
-			
+
 		ELSE err(ident)
 		END;
 	END ProcedureDeclaration;
@@ -1638,7 +1638,7 @@ MODULE OPP;	(** non-portable *)
 			sysflag, done: BOOLEAN;
 	BEGIN
 		topscope := OPT.topScope; i := 0;
-		
+
 		REPEAT
 			i := 0; done := FALSE;
 (*OPM.LogWLn; OPM.LogWStr("Start OBJ fix");*)
@@ -1694,7 +1694,7 @@ OPM.LogWStr("  failed");*)
 			END;
 			INC(i)
 		END;
-		
+
 		WHILE FixList # NIL DO
 			OPT.topScope := FixList.scope; level := FixList.level;
 			OPS.StartPlaying (FixList.stream); x := FixList.node; OPS.Get (sym);
@@ -1802,7 +1802,7 @@ OPM.LogWStr("  failed");*)
 			cases^.conval^.intval := low; cases^.conval^.intval2 := high;
 			IF e THEN cases^.conval^.setval := {1} ELSE cases^.conval^.setval := {} END
 		END CasePart;
-		
+
 		PROCEDURE SetPos(x: OPT.Node);
 		BEGIN
 			x^.conval := OPT.NewConst(); x^.conval^.errpos := pos
@@ -1928,7 +1928,7 @@ OPM.LogWStr("  failed");*)
 						OPB.Assign(x, y)
 					END;
 					SetPos(x); CheckSym(to);
-					
+
 					OPS.StartRecording(sym); Expression(y); OPS.StopRecording (ts);
 					pos := OPM.errpos;
 					IF (y^.class # Nconst) OR UndefFlag THEN
@@ -2045,7 +2045,7 @@ OPM.LogWStr("  failed");*)
 			END
 		END
 	END StatSeq;
-	
+
 	PROCEDURE StatBlock(VAR statseq: OPT.Node;  local: BOOLEAN);	(* BEGIN [BlockMode] StatSeq END *)
 	VAR  lock, oldScopeLock: BOOLEAN; pos: OPM.TextPos; owner: OPT.Object;
 	BEGIN
@@ -2062,7 +2062,7 @@ OPM.LogWStr("  failed");*)
 			statseq.conval.errpos := pos;
 		END
 	END StatBlock;
-	
+
 	PROCEDURE AddTraceCode(owner: OPT.Object;  VAR statseq: OPT.Node);
 	VAR  curScope, obj, last: OPT.Object;  x: OPT.Node;  name: OPS.Name;  i, m: SHORTINT;
 	BEGIN
@@ -2273,7 +2273,7 @@ OPM.LogWStr("  failed");*)
 
 	PROCEDURE CreateHiddenStructs;
 		VAR obj, fld1, fld2: OPT.Object;
-		
+
 		PROCEDURE CreateStruct(name: ARRAY OF CHAR; VAR obj: OPT.Object);
 		VAR typ: OPT.Struct;
 		BEGIN
@@ -2283,7 +2283,7 @@ OPM.LogWStr("  failed");*)
 			obj.mode := Typ; obj.typ := typ; obj.vis := internal; typ.strobj := obj; INCL(obj.flag, OPT.used);
 			obj.conval := OPT.NewConst()
 		END CreateStruct;
-		
+
 	BEGIN
 		CreateStruct(OPT.Delegate, obj);
 		OPT.OpenScope(0, obj);

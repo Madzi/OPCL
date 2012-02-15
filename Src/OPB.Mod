@@ -16,18 +16,18 @@ MODULE OPB;	(** non-portable *)
 
 	CONST
 		AwaitIF* = TRUE;
-		
+
 		(* symbol values or ops *)
 		times = 1; slash = 2; div = 3; mod = 4;
 		and = 5; plus = 6; minus = 7; or = 8; eql = 9;
 		neq = 10; lss = 11; leq = 12; gtr = 13; geq = 14;
 		in = 15; is = 16; ash = 17; msk = 18; len = 19;
 		conv = 20; abs = 21; cap = 22; odd = 23; not = 33;
- 		
+
 		(*SYSTEM*)
 		adr = 24; cc = 25; bit = 26; lsh = 27; rot = 28; val = 29;
 		get8 = 30; get16 = 31; get32 = 32; type = 34;
-		
+
 		(* object modes *)
 		Var = 1; VarPar = 2; Con = 3; Fld = 4; Typ = 5; LProc = 6; XProc = 7;
 		SProc = 8; CProc = 9; IProc = 10; Mod = 11; Head = 12; TProc = 13;
@@ -38,11 +38,11 @@ MODULE OPB;	(** non-portable *)
 		Pointer = 13; ProcTyp = 14; Comp = 15;
 		HInt = 16;
 		intSet = {SInt..LInt}; realSet = {Real, LReal};
-		
+
 		(* composite structure forms *)
 		Basic = 1; StaticArr = 2; SDynArr = 3; DynArr = 4; OpenArr = 5; Record = 6;
 		ArraySet = {StaticArr, SDynArr, DynArr, OpenArr};
-		
+
 		(* nodes classes *)
 		Nvar = 0; Nvarpar = 1; Nfield = 2; Nderef = 3; Nindex = 4; Nguard = 5; Neguard = 6;
 		Nconst = 7; Ntype = 8; Nproc = 9; Nupto = 10; Nmop = 11; Ndop = 12; Ncall = 13;
@@ -57,7 +57,7 @@ MODULE OPB;	(** non-portable *)
 		shortfn = 10; longfn = 11; sizefn = 12; incfn = 13; decfn = 14;
 		inclfn = 15; exclfn = 16; lenfn = 17; copyfn = 18; ashfn = 19; assertfn = 32;
 		awaitfn = 64; lockfn = 66;
-		
+
 		(*SYSTEM function number*)
 		adrfn = 20; ccfn = 21; lshfn = 22; rotfn = 23;
 		getfn = 24; putfn = 25; getrfn = 26; putrfn = 27;
@@ -73,10 +73,10 @@ MODULE OPB;	(** non-portable *)
 
 		(* procedure flags (conval^.setval) *)
 		hasBody = 1; isRedef = 2; slNeeded = 3;
-		
+
 		(* options *)
 		ovflchk = 1;	(* overflow check *)
-		
+
 		AssertTrap = 8;	(* default trap number *)
 
 		(* sysflag *) (* ejz *)
@@ -103,7 +103,7 @@ MODULE OPB;	(** non-portable *)
 			t^.link:=stat; stat^.link:=NIL
 		END
 	END InitInsert;
-	
+
 	PROCEDURE CodeInsert*(VAR stat: OPT.Node);
 		VAR t: OPT.Node;
 	BEGIN
@@ -114,7 +114,7 @@ MODULE OPB;	(** non-portable *)
 			t^.link:=stat; stat^.link:=NIL
 		END
 	END CodeInsert;
-	
+
 	PROCEDURE InitAppend(VAR x: OPT.Node);
 		VAR t: OPT.Node;
 	BEGIN (* smistare il contenuto -> per Head forse non necessario *)
@@ -125,7 +125,7 @@ MODULE OPB;	(** non-portable *)
 			x:=OPT.topScope.code; OPT.topScope.code:=NIL
 		END
 	END InitAppend;
-	
+
 	PROCEDURE NewLeaf*(obj: OPT.Object): OPT.Node;
 		VAR node: OPT.Node; self: OPT.Object;
 	BEGIN
@@ -152,31 +152,31 @@ MODULE OPB;	(** non-portable *)
 		node^.obj := obj; node^.typ := obj^.typ;
 		RETURN node
 	END NewLeaf;
-	
+
 	PROCEDURE Construct*(class: SHORTINT; VAR x: OPT.Node;  y: OPT.Node);
 		VAR node: OPT.Node;
 	BEGIN
 		node := OPT.NewNode(class); node^.typ := OPT.notyp;
 		node^.left := x; node^.right := y; x := node
 	END Construct;
-	
+
 	PROCEDURE Link*(VAR x, last: OPT.Node; y: OPT.Node);
 	BEGIN
 		IF x = NIL THEN x := y ELSE last^.link := y END ;
 		WHILE y^.link # NIL DO y := y^.link END ;
 		last := y
 	END Link;
-	
+
 	PROCEDURE BoolToInt(b: BOOLEAN): LONGINT;
 	BEGIN
 		IF b THEN RETURN 1 ELSE RETURN 0 END
 	END BoolToInt;
-	
+
 	PROCEDURE IntToBool(i: LONGINT): BOOLEAN;
 	BEGIN
 		IF i = 0 THEN RETURN FALSE ELSE RETURN TRUE END
 	END IntToBool;
-	
+
 	PROCEDURE NewBoolConst*(boolval: BOOLEAN): OPT.Node;
 		VAR x: OPT.Node;
 	BEGIN
@@ -245,7 +245,7 @@ MODULE OPB;	(** non-portable *)
 		x := OPT.NewNode(Nconst); x^.conval := OPT.NewConst();
 		x^.conval^.intval := intval; SetIntType(x); RETURN x
 	END NewIntConst;
-	
+
 	PROCEDURE NewRealConst*(realval: LONGREAL; typ: OPT.Struct): OPT.Node;
 		VAR x: OPT.Node;
 	BEGIN
@@ -263,7 +263,7 @@ MODULE OPB;	(** non-portable *)
 		x^.conval^.ext^ := str;
 		RETURN x
 	END NewString;
-	
+
 	PROCEDURE CharToString(n: OPT.Node);
 		VAR ch: CHAR;
 	BEGIN
@@ -321,7 +321,7 @@ MODULE OPB;	(** non-portable *)
 		ELSE err(83); x^.typ := OPT.undftyp
 		END
 	END Field;
-	
+
 	PROCEDURE TypTest*(VAR x: OPT.Node; obj: OPT.Object; guard: BOOLEAN);
 
 		PROCEDURE GTT(t0, t1: OPT.Struct);
@@ -406,10 +406,10 @@ MODULE OPB;	(** non-portable *)
 		END ;
 		x^.intval := OPM.ConstNotAlloc
 	END CheckRealType;
-	
+
 	PROCEDURE MOp*(op: SHORTINT; VAR x: OPT.Node);
 		VAR f: INTEGER; typ: OPT.Struct; z: OPT.Node;
-		
+
 		PROCEDURE NewOp(op: SHORTINT; typ: OPT.Struct; z: OPT.Node): OPT.Node;
 			VAR node: OPT.Node;
 		BEGIN
@@ -525,7 +525,7 @@ MODULE OPB;	(** non-portable *)
 		ELSIF g # NilTyp THEN err(100)
 		END
 	END CheckPtr;
-	
+
 	PROCEDURE CheckParameters*(fp, ap: OPT.Object; checkNames: BOOLEAN);
 		VAR ft, at: OPT.Struct;
 	BEGIN
@@ -869,7 +869,7 @@ MODULE OPB;	(** non-portable *)
 		END ;
 		x.typ := typ
 	END Val;
-	
+
 	PROCEDURE Op*(op: SHORTINT; VAR x: OPT.Node; y: OPT.Node);
 		VAR f, g: INTEGER; t, z: OPT.Node; typ: OPT.Struct; do: BOOLEAN; val: LONGINT;
 
@@ -1058,7 +1058,7 @@ MODULE OPB;	(** non-portable *)
 	PROCEDURE SetRange*(VAR x: OPT.Node; y: OPT.Node);
 		VAR k, l: LONGINT;
 	BEGIN
-		IF (x^.class = Ntype) OR (x^.class = Nproc) OR (y^.class = Ntype) OR (y^.class = Nproc) THEN err(126)	
+		IF (x^.class = Ntype) OR (x^.class = Nproc) OR (y^.class = Ntype) OR (y^.class = Nproc) THEN err(126)
 		ELSIF (x^.typ^.form IN intSet) & (y^.typ^.form IN intSet) THEN
 			IF x^.class = Nconst THEN
 				k := x^.conval^.intval;
@@ -1096,7 +1096,7 @@ MODULE OPB;	(** non-portable *)
 		END ;
 		x^.typ := OPT.settyp
 	END SetElem;
-	
+
 	PROCEDURE CheckAssign(x: OPT.Struct; ynode: OPT.Node);	(* x := y *)
 		VAR f, g: INTEGER; y, p, q: OPT.Struct;
 	BEGIN
@@ -1165,7 +1165,7 @@ MODULE OPB;	(** non-portable *)
 			Convert(ynode, x)
 		END
 	END CheckAssign;
-	
+
 	PROCEDURE CheckLeaf(x: OPT.Node; dynArrToo: BOOLEAN);
 	VAR obj: OPT.Object;
 	BEGIN
@@ -1216,7 +1216,7 @@ MODULE OPB;	(** non-portable *)
 								(*ok*)
 							ELSIF (ptr # NIL) & (ptr.BaseTyp = t) & (ptr.mno # 0) & (ptr.strobj.vis # internal) OR (OPT.typeVisible IN ptr.strobj.flag) THEN
 								(*ok*)
-							ELSE	
+							ELSE
 								err(200)	(* invisible -> td not accessible *)
 							END
 						END;
@@ -1417,14 +1417,14 @@ MODULE OPB;	(** non-portable *)
 
 	PROCEDURE StPar1*(VAR par0: OPT.Node; x: OPT.Node; fctno: SHORTINT);	(* x: second parameter of standard proc *)
 		VAR f, L: INTEGER; typ: OPT.Struct; p, t: OPT.Node; i: LONGINT;
-		
+
 		PROCEDURE NewOp(class, subcl: SHORTINT; left, right: OPT.Node): OPT.Node;
 			VAR node: OPT.Node;
 		BEGIN
 			node := OPT.NewNode(class); node^.subcl := subcl;
 			node^.left := left; node^.right := right; RETURN node
 		END NewOp;
-		
+
 	BEGIN p := par0; f := x^.typ^.form;
 		CASE fctno OF
 		  incfn, decfn: (*INC DEC*)
@@ -1722,7 +1722,7 @@ MODULE OPB;	(** non-portable *)
 		END ;
 		par0 := p
 	END StFct;
-	
+
 	PROCEDURE OpenArrParCheck(ftyp, atyp: OPT.Struct; fvarpar: BOOLEAN);
 		VAR f: INTEGER;
 	BEGIN (* ftyp^.comp = OpenArr *)
@@ -1757,7 +1757,7 @@ MODULE OPB;	(** non-portable *)
 			ELSIF x^.typ^.form # Pointer THEN err(71) END
 		END
 	END CheckReceiver;
-	
+
 	PROCEDURE PrepCall*(VAR x: OPT.Node; VAR fpar: OPT.Object);
 	BEGIN
 		IF (x^.obj # NIL) & (x^.obj^.mode IN {LProc, XProc, TProc, CProc}) THEN
@@ -1808,7 +1808,7 @@ MODULE OPB;	(** non-portable *)
 			END
 		END
 	END Param;
-	
+
 	PROCEDURE StaticLink*(dlev: LONGINT);
 		VAR scope: OPT.Object;
 	BEGIN
@@ -1835,7 +1835,7 @@ MODULE OPB;	(** non-portable *)
 		BindNodes(Ncall, typ, x, apar); x^.obj := fp;
 		x.subcl := 0  (* 0 = no assign call *)
 	END Call;
-	
+
 	PROCEDURE CopyAndSubst*(VAR new: OPT.Node; old: OPT.Node);
 	BEGIN
 		IF old = NIL THEN
@@ -1869,10 +1869,10 @@ MODULE OPB;	(** non-portable *)
 		VAR x: OPT.Node;
 	BEGIN
 		x := OPT.NewNode(Nenter); x^.typ := OPT.notyp; x^.obj := proc;
-		x^.left := procdec; x^.right := stat; InitAppend(x^.right);	
+		x^.left := procdec; x^.right := stat; InitAppend(x^.right);
 		procdec := x
 	END Enter;
-	
+
 	PROCEDURE Return*(VAR x: OPT.Node; proc: OPT.Object);
 		VAR node: OPT.Node;
 	BEGIN
@@ -1923,7 +1923,7 @@ MODULE OPB;	(** non-portable *)
 		BindNodes(Nassign, OPT.notyp, x, y); x^.subcl := assign;
 		IF struct & (y.class = Ncall) THEN y.subcl := 1 END  (* 1 = assign call *)
 	END Assign;
-	
+
 	PROCEDURE Inittd*(VAR inittd, last: OPT.Node; typ: OPT.Struct);
 		VAR node: OPT.Node;
 	BEGIN
@@ -1932,7 +1932,7 @@ MODULE OPB;	(** non-portable *)
 		IF inittd = NIL THEN inittd := node ELSE last^.link := node END ;
 		last := node
 	END Inittd;
-	
+
 BEGIN
 	maxExp := log(MAX(LONGINT) DIV 2 + 1); maxExp := exp;
 	verify:=NIL

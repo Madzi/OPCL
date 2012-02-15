@@ -43,7 +43,7 @@ VAR
 	resMsg*: ARRAY 256 OF CHAR;	(** Explanation of res, if res # 0 *)
 	extension*: ARRAY 8 OF CHAR;	(** Extension of object files (non-portable) *)
 	resMsgLen: LONGINT;
-	
+
 	(** The res codes are listed in the table below.
 		done = 0;
 		fileNotFound = 1
@@ -82,7 +82,7 @@ TYPE
 		nofFixups: INTEGER;
 		offset: POINTER TO ARRAY OF LONGINT
 	END;
-	
+
 CONST
 	(* export/use section *)
 	EUEnd = 0; EURecord = 1; EUobjScope = 0; EUrecScope = 1;  EUerrScope = -1;
@@ -204,7 +204,7 @@ PROCEDURE LoadModule (VAR R: Files.Rider; VAR m: Module);
 			link := nextlink
 		UNTIL link = 0FFFFH
 	END FixupCall;
-	
+
 	PROCEDURE FixupVar(code, link, fixval: LONGINT);
 	VAR nofFixups: INTEGER; i, val: LONGINT;
 	BEGIN
@@ -216,7 +216,7 @@ PROCEDURE LoadModule (VAR R: Files.Rider; VAR m: Module);
 			INC(i)
 		END
 	END FixupVar;
-	
+
 	PROCEDURE Fixup(m: Module; link: LinkTab);
 		VAR i, val, offs: LONGINT;
 			modNo, nofFixups: INTEGER;
@@ -305,10 +305,10 @@ PROCEDURE LoadModule (VAR R: Files.Rider; VAR m: Module);
 			INC(i)
 		END
 	END Fixup;
-	
+
 	PROCEDURE LoadExpBlock(VAR R: Files.Rider; M: Module);
 		VAR struct, old: POINTER TO ARRAY OF LONGINT (*ExportPtr*); nofStr: LONGINT; exp: ExportPtr;
-		
+
 		PROCEDURE LoadScope(VAR scope: ExportDesc; level: INTEGER; adr: LONGINT);
 			VAR no, no2: INTEGER; fp, off: LONGINT;
 		BEGIN
@@ -341,21 +341,21 @@ PROCEDURE LoadModule (VAR R: Files.Rider; VAR m: Module);
 				Files.ReadNum(R, fp)
 			END
 		END LoadScope;
-	
+
 	BEGIN
 		NEW(struct, 64);
 		nofStr := 0; LoadScope(M.export, EUobjScope, 0)
 	END LoadExpBlock;
-	
+
 	PROCEDURE CheckUseBlock(VAR R: Files.Rider; M: Module);
 		VAR mod: Module; name: ModuleName;
-	
+
 		PROCEDURE Err;
 		BEGIN
 			IF res = 0 THEN COPY(mod.name, imported); res := incompImport; ErrMsg(res)
 			ELSE Ch(9X) END
 		END Err;
-	
+
 		PROCEDURE CheckScope(scope: ExportDesc; level: INTEGER);
 			VAR fp, link, i, tdadr: LONGINT; tadr: ExportPtr; tmpErr: BOOLEAN;
 		BEGIN tmpErr := (level = EUerrScope);
@@ -396,7 +396,7 @@ PROCEDURE LoadModule (VAR R: Files.Rider; VAR m: Module);
 				Files.ReadNum(R, fp)
 			END
 		END CheckScope;
-	
+
 	BEGIN Files.ReadString(R, name);
 		WHILE (name # "") & (res = 0) DO
 			Load(name, mod);
@@ -404,7 +404,7 @@ PROCEDURE LoadModule (VAR R: Files.Rider; VAR m: Module);
 			Files.ReadString(R, name)
 		END
 	END CheckUseBlock;
-	
+
 	PROCEDURE Expect (tag: CHAR): BOOLEAN;
 		VAR ch: CHAR;
 	BEGIN Files.Read(R, ch);
@@ -413,7 +413,7 @@ PROCEDURE LoadModule (VAR R: Files.Rider; VAR m: Module);
 		ELSE RETURN TRUE
 		END
 	END Expect;
-	
+
 	PROCEDURE FindTDescAdr(M: Module; fp: LONGINT; VAR adr: LONGINT);
 	VAR i: INTEGER;
 	BEGIN
@@ -423,7 +423,7 @@ PROCEDURE LoadModule (VAR R: Files.Rider; VAR m: Module);
 		ELSE HALT(99)
 		END
 	END FindTDescAdr;
-	
+
 	PROCEDURE ReadTypes (VAR R: Files.Rider);
 		VAR
 			i, j, k, tdsize, recordSize: LONGINT;
@@ -531,7 +531,7 @@ PROCEDURE LoadModule (VAR R: Files.Rider; VAR m: Module);
 			+ (h.nofTds*4 + 35) DIV 16 + ((h.nofImps)*4 + 35) DIV 16
 			+ (h.dataSize + (-h.dataSize) MOD 8 + h.conSize + 35) DIV 16
 			+ (h.codeSize + 35) DIV 16 + (h.refSize + 35) DIV 16);
-			
+
 		SYSTEM.NEW(arrPtr, size);
 		SYSTEM.GET(SYSTEM.VAL(ADDRESS, arrPtr) - 4, t);
 
@@ -745,7 +745,7 @@ PROCEDURE ThisMod* (name: ARRAY OF CHAR): Module;
 BEGIN
 	excp.panic := FALSE; Kernel.LockAndTry(moduleCS, excp);
 	Load(name, mod);
-	Kernel.UnlockAndUnwind(moduleCS, excp);	
+	Kernel.UnlockAndUnwind(moduleCS, excp);
 	RETURN mod
 END ThisMod;
 

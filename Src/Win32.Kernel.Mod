@@ -73,7 +73,7 @@ TYPE
 	InitPtr = POINTER TO RECORD tag: Tag; z0, z1, z2, z3, z4, z5, z6, z7: LONGINT END;
 		(* the following type is used indirectly in InitHeap *)
 	PtrElemDesc = RECORD a: SYSTEM.PTR END;	(* has same type descriptor as element of ARRAY OF POINTER *)
-	
+
 	Finalizer* = PROCEDURE (obj: SYSTEM.PTR);
 	FinObj = POINTER TO RECORD
 		next: FinObj;

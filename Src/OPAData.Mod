@@ -5,7 +5,7 @@ MODULE OPAData;	(** prk  **)
 
 (*
 	Create the data file containing the tables for OPA
-	
+
 	FileFormat:
 		InstrTabLen:2
 		{(name start:2 end:2 target:4|0X)}
@@ -20,15 +20,15 @@ IMPORT
 
 CONST
 		debug = FALSE;
-		
+
 		FileName = "OPA.Data";
-		
+
 		(*processor flags*)
 		i386 = 0;  i486 = 1;  Pentium = 2;  PentiumPro = 3;
 		FPU = 16;  Privileged = 17; MMX = 18; SSE = 19; SSE2 = 20;	(*check name!*)
-		
+
 		none = -1;
-		
+
 		(* Structure sizes *)
 		MnemoLen = 12;
 
@@ -39,22 +39,22 @@ CONST
 
 		RegAL = 09H; RegAX = 11H; RegEAX = 21H;		(* special cases with fixed register *)
 		RegDX = 12H; RegCL = 13H;
-		
+
 		Imm8 = 30H;	(* 8bit immediate *)
 		Imm16 = 31H;	(* 16bit immediate *)
 		Imm32 = 32H;	(* 32bit immediate *)
 		SImm8 = 35H;	(* 8bit signed immediate *)
 		Imm = 36H;	(* any immediate *)
-		
+
 		Const1 = 33H;								(* special case for rotate/shift *)
 		Const3 = 34H;								(* special case for INT 3 *)
-		
+
 			(* register / memory modes *)
 		RM = 40H; RM8 = 41H; RM16 = 42H; RM32 = 43H;
-		
+
 		MM = 44H;	(* mm/mm32 or mm/mm64 *)
 		MM32 = 45H; MM64 = 46H;
-		
+
 		XMM = 0A0H;	(* xmm/m32 or xmm/m64 or xmm/m128 *)
 		XMM32 = 0A1H;	(* xmm/m32 *)
 		XMM64 = 0A2H;	(* xmm/m64 *)
@@ -63,19 +63,19 @@ CONST
 			(* memory mode *)
 		M = 48H; M8 = 49H; M16 = 4AH; M32 = 4BH; M64 = 4CH; M80 = 4DH; M128 = 4EH;
 		(*M2 = 4EH;*)
-			
+
 		SReg = 50H;	(* Segment Register *)
 		RegCS = 51H; RegDS = 52H; RegES = 53H; RegFS = 54H;
 		RegGS = 55H; RegSS = 56H;
-		
+
 			(* Relative modes *)
 		Rel8 = 60H; Rel16 = 61H; Rel32 = 62H; FwdJmp = 63H;
-		
+
 			(* Special registers *)
 		CRReg = 70H; DRReg = 71H; TRReg = 72H;
 		FReg = 80H; FRegST = 81H;
-		
-		
+
+
 		(* Opcodes modifiers *)
 		OmReg = 1;		(* register stored in the RM byte as reg/opcode *)
 		OmOp = 2;		(* register added to the opcode *)
@@ -84,7 +84,7 @@ CONST
 
 TYPE
 		Mnemo = ARRAY MnemoLen OF CHAR;
-		
+
 	(*the types here must be the same as in OPA*)
 		InstrDesc = RECORD
 					name: Mnemo;
@@ -103,34 +103,34 @@ TYPE
 				opc: INTEGER;			(* value stored in reg/opcode of modr/m. -1 = none *)
 				reg: INTEGER;			(* where is the register stored: none / rm /op *)
 			END;
-		
+
 VAR
 		(*tables*)
 		OpTab: POINTER TO ARRAY OF OpCode;	(* Table with the opcodes *)
 		OpTabN: INTEGER;		(* nof opcodes in the table *)
 		InstrTab: POINTER TO ARRAY OF InstrDesc;	(* Table with the instructions !!Hash *)
 		OpTabLen, InstrTabLen: INTEGER;
-		
+
 		Clash: ARRAY 32 OF LONGINT;
-		
+
 		(*statistic informations*)
 		InstrCount, Average: LONGINT;		(* debug: access average *)
 
 		(*docu mode*)
 		Docu: BOOLEAN;
 		W: Texts.Writer;
-		
+
 	PROCEDURE Message(str: ARRAY OF CHAR);
 	BEGIN
 		Texts.WriteString(W, str);  Texts.WriteLn(W);  Texts.Append(Oberon.Log, W.buf)
 	END Message;
-	
+
 	(** converts an integer value to a hex string (taken from Utilities.Mod) *)
 	PROCEDURE IntToHexStr(h, width: LONGINT; VAR s: ARRAY OF CHAR);
 	VAR c: CHAR;
 	BEGIN
 		IF (width <= 0) THEN width := 8 END;
-	
+
 		s[width+1] := 0X;
 		WHILE (width >= 0) DO
 			c := CHR(h MOD 10H + ORD("0"));
@@ -212,7 +212,7 @@ VAR
 				k := (k + n) MOD InstrTabLen; INC(n, 1)
 		END
 	END HashFn;
-	
+
 	PROCEDURE FindInstruction(VAR name: ARRAY OF CHAR; VAR inx: INTEGER);
 		VAR n: INTEGER;
 	BEGIN
@@ -224,7 +224,7 @@ VAR
 			inx := -1
 		END;
 	END FindInstruction;
-	
+
 	PROCEDURE InsertMnemo(name: ARRAY OF CHAR; VAR k: INTEGER; target: SET);
 		VAR n: INTEGER;
 	BEGIN
@@ -237,12 +237,12 @@ VAR
 		END;
 		COPY(name, InstrTab[k].name);  InstrTab[k].target := target;
 		InstrTab[k].start := OpTabN; InstrTab[k].end := OpTabN;
-		
+
 		DEC(n);
 		IF n < LEN(Clash) THEN  INC(Clash[n])  ELSE  INC(Clash[LEN(Clash)-1])  END;
 		Average := Average + n; INC(InstrCount);
 	END InsertMnemo;
-	
+
 	PROCEDURE InsertAlias(name, alias: ARRAY OF CHAR);
 		VAR n,a: INTEGER;
 	BEGIN
@@ -253,7 +253,7 @@ VAR
 		InsertMnemo(alias, a, InstrTab[n].target);
 		InstrTab[a].start := InstrTab[n].start; InstrTab[a].end := InstrTab[n].end;
 	END InsertAlias;
-	
+
 	PROCEDURE InsertOp3Ext(idx, dest, src, o3, op0, op1, op3, opc, om: INTEGER);
 		VAR pos: INTEGER;
 	BEGIN
@@ -279,7 +279,7 @@ VAR
 		ELSE Message("Op Table FULL")
 		END
 	END InsertOp3;
-	
+
 	PROCEDURE InsertOpExt(idx, dest, src, op0, op1, op2, opc, om: INTEGER);
 	VAR pos: INTEGER;
 	BEGIN
@@ -305,18 +305,18 @@ VAR
 		ELSE Message("Op Table FULL")
 		END
 	END InsertOp;
-	
+
 (* OPA Data *)
 	PROCEDURE InsertFloatInstr1;
 		VAR k: INTEGER;
 	BEGIN
-		
+
 		InsertMnemo("F2XM1", k, {FPU});
 		InsertOp(k, none, none, 0D9H, 0F0H, none, none);
-		
+
 		InsertMnemo("FABS", k, {FPU});
 		InsertOp(k, none, none, 0D9H, 0E1H, none, none);
-		
+
 		InsertMnemo("FADD", k, {FPU});
 		InsertOp(k, M32, none, 0D8H, none, 0, none);
 		InsertOp(k, M64, none, 0DCH, none, 0, none);
@@ -333,10 +333,10 @@ VAR
 
 		InsertMnemo("FBLD", k, {FPU});
 		InsertOp(k, M80, none, 0DFH, none, 4, none);
-		
+
 		InsertMnemo("FBSTP", k, {FPU});
 		InsertOp(k, M80, none, 0DFH, none, 6, none);
-		
+
 		InsertMnemo("FCHS", k, {FPU});
 		InsertOp(k, none, none, 0D9H, 0E0H, none, none);
 
@@ -357,13 +357,13 @@ VAR
 
 		InsertMnemo("FCOMPP", k, {FPU});
 		InsertOp(k, none, none, 0DEH, 0D9H, none, none);
-		
+
 		InsertMnemo("FCOS", k, {FPU});
 		InsertOp(k, none, none, 0D9H, 0FFH, none, none);
-		
+
 		InsertMnemo("FDECSTP", k, {FPU});
 		InsertOp(k, none, none, 0D9H, 0F6H, none, none);
-		
+
 		InsertMnemo("FDIV", k, {FPU});
 		InsertOp(k, M32, none, 0D8H, none, 6, none);
 		InsertOp(k, M64, none, 0DCH, none, 6, none);
@@ -407,10 +407,10 @@ VAR
 		InsertOp(k, M16, none, 0DFH, none, 0, none);
 		InsertOp(k, M32, none, 0DBH, none, 0, none);
 		InsertOp(k, M64, none, 0DFH, none, 5, none);
-		
+
 		InsertMnemo("FINCSTP", k, {FPU});
 		InsertOp(k, none, none, 0D9H, 0F7H, none, none);
-		
+
 		InsertMnemo("FNINIT", k, {FPU});
 		InsertOp(k, none, none, 0DBH, 0E3H, none, none);
 
@@ -428,13 +428,13 @@ VAR
 		InsertOp(k, M64, none, 0DDH, none, 0, none);
 		InsertOp(k, M80, none, 0DBH, none, 5, none);
 		InsertOp(k, FReg, none, 0D9H, 0C0H, none, OmOp);
-		
+
 		InsertMnemo("FLD1", k, {FPU});
 		InsertOp(k, none, none, 0D9H, 0E8H, none, none);
 
 		InsertMnemo("FLDL2T", k, {FPU});
 		InsertOp(k, none, none, 0D9H, 0E9H, none, none);
-		
+
 		InsertMnemo("FLDL2E", k, {FPU});
 		InsertOp(k, none, none, 0D9H, 0EAH, none, none);
 
@@ -509,7 +509,7 @@ VAR
 		InsertMnemo("FSQRT", k, {FPU});
 		InsertOp(k, none, none, 0D9H, 0FAH, none, none);
 	END InsertFloatInstr1;
-	
+
 	PROCEDURE InsertFloatInstr2;
 		VAR k: INTEGER;
 	BEGIN
@@ -603,20 +603,20 @@ VAR
 		InsertMnemo("FYL2XP1", k, {FPU});
 		InsertOp(k, none, none, 0D9H, 0F9H, none, none);
 	END InsertFloatInstr2;
-	
-	
+
+
 	PROCEDURE InsertInstr1;
 		VAR i,k: INTEGER;
 	BEGIN
 		InsertMnemo("AAA", k, {i386});
 		InsertOp(k, none, none, 37H, none, none, none);
-		
+
 		InsertMnemo("AAD", k, {i386});
 		InsertOp(k, none, none, 0D5H, 0AH, none, none);
-		
+
 		InsertMnemo("AAM", k, {i386});
 		InsertOp(k, none, none, 0D4H, 0AH, none, none);
-		
+
 		InsertMnemo("AAS", k, {i386});
 		InsertOp(k, none, none, 3FH, none, none, none);
 
@@ -646,14 +646,14 @@ VAR
 			InsertOp(k, Reg16, RM16, 03H + i * 08H, none, none, OmReg);
 			InsertOp(k, Reg32, RM32, 03H + i * 08H, none, none, OmReg);
 		END;
-		
+
 		InsertMnemo("ARPL", k, {i386});
 		InsertOp(k, RM16, Reg16, 63H, none, none, OmReg);
-		
+
 		InsertMnemo("BOUND", k, {i386});
 		InsertOp(k, Reg16, M16, 62H, none, none, OmReg);
 		InsertOp(k, Reg32, M32, 62H, none, none, OmReg);
-		
+
 		InsertMnemo("BSF", k, {i386});
 		InsertOp(k, Reg16, RM16, 0FH, 0BCH, none, OmReg);
 		InsertOp(k, Reg32, RM32, 0FH, 0BCH, none, OmReg);
@@ -664,7 +664,7 @@ VAR
 
 		InsertMnemo("BSWAP", k, {i486});
 		InsertOp(k, Reg32, none, 0FH, 0C8H, none, OmOp);
-		
+
 		FOR i := 0 TO 3 DO
 			CASE i OF
 				  0: InsertMnemo("BT", k, {i386})
@@ -682,13 +682,13 @@ VAR
 		InsertOp(k, RM16, none, 0FFH, none, 2, none);
 		InsertOp(k, Rel32, none, 0E8H, none, none, none);
 		InsertOp(k, RM32, none, 0FFH, none, 2, none);
-		
+
 		InsertMnemo("CBW", k, {i386});
 		InsertOp(k, none, none, 066H, 098H, none, none);
-		
+
 		InsertMnemo("CWDE", k, {i386});
 		InsertOp(k, none, none, 098H, none, none, none);
-		
+
 		FOR i := 8 TO 0DH DO
 			CASE i OF
 				  8: InsertMnemo("CLC", k, {i386})
@@ -700,13 +700,13 @@ VAR
 			END;
 			InsertOp(k, none, none, 0F0H + i, none, none, none)
 		END;
-		
+
 		InsertMnemo("CLTS", k, {i386, Privileged});
 		InsertOp(k, none, none, 0FH, 06H, none, none);
-		
+
 		InsertMnemo("CMC", k, {i386});
 		InsertOp(k, none, none, 0F5H, none, none, none);
-		
+
 		FOR i := 0 TO 15 DO
 			CASE i OF
 			0: InsertMnemo("CMOVO", k, {PentiumPro})
@@ -741,13 +741,13 @@ VAR
 		InsertAlias("CMOVNL", "CMOVGE");
 		InsertAlias("CMOVLE", "CMOVNG");
 		InsertAlias("CMOVNLE", "CMOVG");
-		
+
 		InsertMnemo("CMPSB", k, {i386});
 		InsertOp(k, none, none, 0A6H, none, none, none);
-		
+
 		InsertMnemo("CMPSW", k, {i386});
 		InsertOp(k, none, none, 066H, 0A7H, none, none);
-		
+
 		InsertMnemo("CMPSD", k, {i386});
 		InsertOp(k, none, none, 0A7H, none, none, none);
 			(* SSE2 instruction with equal mnemonic *)
@@ -760,7 +760,7 @@ VAR
 
 		InsertMnemo("CMPXCHG8B", k, {Pentium});
 		InsertOp(k, M64, none, 0FH, 0C7H, 1, none);
-		
+
 		InsertMnemo("CPUID", k, {Pentium});
 		InsertOp(k, none, none, 0FH, 0A2H, none, none);
 
@@ -768,7 +768,7 @@ VAR
 		InsertOp(k, none, none, 066H, 099H, none, none);
 		InsertMnemo("CDQ", k, {i386});
 		InsertOp(k, none, none, 099H, none, none, none);
-		
+
 		InsertMnemo("DAA", k, {i386});
 		InsertOp(k, none, none, 027H, none, none, none);
 		InsertMnemo("DAS", k, {i386});
@@ -780,7 +780,7 @@ VAR
 		InsertOp(k, RM8, none, 0FEH, none, 1, none);
 		InsertOp(k, RM16, none, 0FFH, none, 1, none);
 		InsertOp(k, RM32, none, 0FFH, none, 1, none);
-		
+
 		InsertMnemo("DIV", k, {i386});
 		InsertOp(k, RegAL, RM8, 0F6H, none, 6, none);
 		InsertOp(k, RegAX, RM16, 0F7H, none, 6, none);
@@ -788,10 +788,10 @@ VAR
 		InsertOp(k, RM8, none, 0F6H, none, 6, none);
 		InsertOp(k, RM16, none, 0F7H, none, 6, none);
 		InsertOp(k, RM32, none, 0F7H, none, 6, none);
-		
+
 		InsertMnemo("HLT", k, {i386, Privileged});
 		InsertOp(k, none, none, 0F4H, none, none, none);
-		
+
 		InsertMnemo("IDIV", k, {i386});
 		InsertOp(k, RegAL, RM8, 0F6H, none, 7, none);
 		InsertOp(k, RegAX, RM16, 0F7H, none, 7, none);
@@ -816,7 +816,7 @@ VAR
 		InsertOp3(k, Reg16, RM16, Imm16, 069H, none, none, OmReg);
 		InsertOp3(k, Reg32, RM32, Imm32, 069H, none, none, OmReg);
 	END InsertInstr1;
-		
+
 	PROCEDURE InsertInstr2;
 		VAR i,k: INTEGER;
 	BEGIN
@@ -840,32 +840,32 @@ VAR
 
 		InsertMnemo("INSW", k, {i386});
 		InsertOp(k, none, none, 066H, 06DH, none, none);
-		
+
 		InsertMnemo("INSD", k, {i386});
 		InsertOp(k, none, none, 06DH, none, none, none);
-		
+
 		InsertMnemo("INT", k, {i386});
 		InsertOp(k, Const3, none, 0CCH, none, none, none);
 		InsertOp(k, Imm8, none, 0CDH, none, none, none);
-		
+
 		InsertMnemo("INTO", k, {i386});
 		InsertOp(k, none, none, 0CEH, none, none, none);
-		
+
 		InsertMnemo("INVD", k, {i486, Privileged});
 		InsertOp(k, none, none, 0FH, 08H, none, none);
-		
+
 		InsertMnemo("INVLPG", k, {i486, Privileged});
 		InsertOp(k, M, none, 0FH, 01H, 7, none);
-		
+
 		InsertMnemo("IRETD", k, {i386});
 		InsertOp(k, none, none, 0CFH, none, none, none);
-		
+
 		InsertMnemo("JCXZ", k, {i386});
 		InsertOp(k, Rel8, none, 067H, 0E3H, none, none);
-		
+
 		InsertMnemo("JECXZ", k, {i386});
 		InsertOp(k, Rel8, none, 0E3H, none, none, none);
-		
+
 		FOR i := 0 TO 15 DO
 			CASE i OF
 			0: InsertMnemo("JO", k, {i386})
@@ -901,16 +901,16 @@ VAR
 		InsertAlias("JNL", "JGE");
 		InsertAlias("JLE", "JNG");
 		InsertAlias("JNLE", "JG");
-		
+
 		InsertMnemo("JMP", k, {i386});
 		InsertOp(k, Rel8, none, 0EBH, none, none, none);
 		InsertOp(k, RM16, none, 0FFH, none, 4, none);
 		InsertOp(k, Rel32, none, 0E9H, none, none, none);
 		InsertOp(k, RM32, none, 0FFH, none, 4, none);
-		
+
 		InsertMnemo("LAHF", k, {i386});
 		InsertOp(k, none, none, 09FH, none, none, none);
-		
+
 		InsertMnemo("LAR", k, {i386});
 		InsertOp(k, Reg16, RM16, 0FH, 02H, none, OmReg);
 		InsertOp(k, Reg32, RM32, 0FH, 02H, none, OmReg);
@@ -939,10 +939,10 @@ VAR
 		InsertMnemo("LGS", k, {i386});
 		InsertOp(k, Reg16, M16, 0FH, 0B5H, none, OmReg);
 		InsertOp(k, Reg32, M32, 0FH, 0B5H, none, OmReg);
-		
+
 		InsertMnemo("LGDT", k, {i386, Privileged});
 		InsertOp(k, M, none, 0FH, 01H, 2, none);
-		
+
 		InsertMnemo("LIDT", k, {i386, Privileged});
 		InsertOp(k, M, none, 0FH, 01H, 3, none);
 
@@ -951,7 +951,7 @@ VAR
 
 		InsertMnemo("LLDT", k, {i386, Privileged});
 		InsertOp(k, RM16, none, 0FH, 00H, 2, none);
-		
+
 		InsertMnemo("LMSW", k, {i386, Privileged});
 		InsertOp(k, RM16, none, 0FH, 01H, 6, none);
 
@@ -966,11 +966,11 @@ VAR
 
 		InsertMnemo("LOOP", k, {i386});
 		InsertOp(k, Rel8, none, 0E2H, none, none, none);
-		
+
 		InsertMnemo("LOOPE", k, {i386});
 		InsertOp(k, Rel8, none, 0E1H, none, none, none);
 		InsertAlias("LOOPE", "LOOPZ");
-		
+
 		InsertMnemo("LOOPNE", k, {i386});
 		InsertOp(k, Rel8, none, 0E0H, none, none, none);
 		InsertAlias("LOOPNE", "LOOPNZ");
@@ -982,7 +982,7 @@ VAR
 		InsertMnemo("LTR", k, {i386, Privileged});
 		InsertOp(k, RM16, none, 0FH, 00H, 3, none);
 	END InsertInstr2;
-	
+
 	PROCEDURE InsertInstr3;
 		VAR i,k: INTEGER;
 	BEGIN
@@ -1010,10 +1010,10 @@ VAR
 
 		InsertMnemo("MOVSB", k, {i386});
 		InsertOp(k, none, none, 0A4H, none, none, none);
-		
+
 		InsertMnemo("MOVSW", k, {i386});
 		InsertOp(k, none, none, 066H, 0A5H, none, none);
-		
+
 		InsertMnemo("MOVSD", k, {i386});
 		InsertOp(k, none, none, 0A5H, none, none, none);
 			(* SSE2 Instructions with equal mnemonic *)
@@ -1024,7 +1024,7 @@ VAR
 		InsertOp(k, Reg16, RM8, 0FH, 0BEH, none, OmReg);
 		InsertOp(k, Reg32, RM8, 0FH, 0BEH, none, OmReg);
 		InsertOp(k, Reg32, RM16, 0FH, 0BFH, none, OmReg);
-		
+
 		InsertMnemo("MOVZX", k, {i386});
 		InsertOp(k, Reg16, RM8, 0FH, 0B6H, none, OmReg);
 		InsertOp(k, Reg32, RM8, 0FH, 0B6H, none, OmReg);
@@ -1037,7 +1037,7 @@ VAR
 		InsertOp(k, RM8, none, 0F6H, none, 4, none);
 		InsertOp(k, RM16, none, 0F7H, none, 4, none);
 		InsertOp(k, RM32, none, 0F7H, none, 4, none);
-		
+
 		InsertMnemo("NEG", k, {i386});
 		InsertOp(k, RM8, none, 0F6H, none, 3, none);
 		InsertOp(k, RM16, none, 0F7H, none, 3, none);
@@ -1045,7 +1045,7 @@ VAR
 
 		InsertMnemo("NOP", k, {i386});
 		InsertOp(k, none, none, 090H, none, none, none);
-		
+
 		InsertMnemo("NOT", k, {i386});
 		InsertOp(k, RM8, none, 0F6H, none, 2, none);
 		InsertOp(k, RM16, none, 0F7H, none, 2, none);
@@ -1074,7 +1074,7 @@ VAR
 		InsertOp(k, RegSS, none, 017H, none, none, none);
 		InsertOp(k, RegFS, none, 0FH, 0A1H, none, none);
 		InsertOp(k, RegGS, none, 0FH, 0A9H, none, none);
-		
+
 		InsertMnemo("POPAD", k, {i386});
 		InsertOp(k, none, none, 061H, none, none, none);
 
@@ -1093,7 +1093,7 @@ VAR
 		InsertOp(k, RegFS, none, 0FH, 0A0H, none, none);
 		InsertOp(k, RegGS, none, 0FH, 0A8H, none, none);
 	END InsertInstr3;
-		
+
 	PROCEDURE InsertInstr4;
 		VAR i,k: INTEGER;
 	BEGIN
@@ -1127,7 +1127,7 @@ VAR
 			END
 		END;
 		InsertAlias("SHL", "SAL");
-		
+
 		InsertMnemo("REP", k, {i386});
 		InsertOp(k, none, none, 0F3H, none, none, none);
 		InsertAlias("REP", "REPE"); InsertAlias("REP", "REPZ");
@@ -1293,7 +1293,7 @@ VAR
 		InsertOpExt(k, XReg, XMM64, 0F3H, 0FH, 7EH, none, OmReg);
 		InsertOp(k, MM64, MReg, 0FH, 7FH, none, OmReg);
 		InsertOpExt(k, XMM64, XReg, 66H, 0FH, 0D6H, none, OmReg);
-		
+
 		InsertMnemo("PACKSSWB", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 63H, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 63H, none, OmReg);
@@ -1309,7 +1309,7 @@ VAR
 		InsertMnemo("PADDB", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 0FCH, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0FCH, none, OmReg);
-		
+
 		InsertMnemo("PADDW", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 0FDH, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0FDH, none, OmReg);
@@ -1337,11 +1337,11 @@ VAR
 		InsertMnemo("PAND", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 0DBH, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0DBH, none, OmReg);
-		
+
 		InsertMnemo("PANDN", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 0DFH, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0DFH, none, OmReg);
-		
+
 		InsertMnemo("PCMPEQB", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 074H, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 74H, none, OmReg);
@@ -1353,7 +1353,7 @@ VAR
 		InsertMnemo("PCMPEQD", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 076H, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 76H, none, OmReg);
-		
+
 		InsertMnemo("PCMPGTB", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 064H, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 64H, none, OmReg);
@@ -1365,25 +1365,25 @@ VAR
 		InsertMnemo("PCMPGTD", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 066H, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 66H, none, OmReg);
-		
+
 		InsertMnemo("PMADDWD", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 0F5H, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0F5H, none, OmReg);
-		
+
 		InsertMnemo("PMULHW", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 0E5H, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0E5H, none, OmReg);
-		
+
 		InsertMnemo("PMULLW", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 0D5H, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0D5H, none, OmReg);
-		
+
 		InsertMnemo("PSLLW", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 0F1H, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0F1H, none, OmReg);
 		InsertOp(k, MReg, Imm8, 0FH, 071H, 6, OmRM);
 		InsertOpExt(k, XReg, Imm8, 66H, 0FH, 71H, 6, OmRM);
-		
+
 		InsertMnemo("PSLLD", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 0F2H, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0F2H, none, OmReg);
@@ -1395,7 +1395,7 @@ VAR
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0F3H, none, OmReg);
 		InsertOp(k, MReg, Imm8, 0FH, 073H, 6, OmRM);
 		InsertOpExt(k, XReg, Imm8, 66H, 0FH, 73H, 6, OmRM);
-		
+
 		InsertMnemo("PSRAW", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 0E1H, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0E1H, none, OmReg);
@@ -1407,7 +1407,7 @@ VAR
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0E2H, none, OmReg);
 		InsertOp(k, MReg, Imm8, 0FH, 072H, 4, OmRM);
 		InsertOpExt(k, XReg, Imm8, 66H, 0FH, 72H, 4, OmRM);
-		
+
 		InsertMnemo("PSRLW", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 0D1H, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0D1H, none, OmReg);
@@ -1425,7 +1425,7 @@ VAR
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0D3H, none, OmReg);
 		InsertOp(k, MReg, Imm8, 0FH, 073H, 2, OmRM);
 		InsertOpExt(k, XReg, Imm8, 66H, 0FH, 73H, 2, OmRM);
-		
+
 		InsertMnemo("PSUBB", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 0F8H, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0F8H, none, OmReg);
@@ -1437,7 +1437,7 @@ VAR
 		InsertMnemo("PSUBD", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 0FAH, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0FAH, none, OmReg);
-		
+
 		InsertMnemo("PSUBSB", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 0E8H, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0E8H, none, OmReg);
@@ -1445,7 +1445,7 @@ VAR
 		InsertMnemo("PSUBSW", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 0E9H, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0E9H, none, OmReg);
-		
+
 		InsertMnemo("PSUBUSB", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 0D8H, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0D8H, none, OmReg);
@@ -1453,15 +1453,15 @@ VAR
 		InsertMnemo("PSUBUSW", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 0D9H, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0F9H, none, OmReg);
-		
+
 		InsertMnemo("PXOR", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 0EFH, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0EFH, none, OmReg);
-		
+
 		InsertMnemo("POR", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 0EBH, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0EBH, none, OmReg);
-		
+
 		InsertMnemo("PUNPCKHBW", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 068H, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 68H, none, OmReg);
@@ -1473,7 +1473,7 @@ VAR
 		InsertMnemo("PUNPCKHDQ", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 06AH, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 6AH, none, OmReg);
-		
+
 		InsertMnemo("PUNPCKLBW", k, {MMX});
 		InsertOp(k, MReg, MM64, 0FH, 060H, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 60H, none, OmReg);
@@ -1494,232 +1494,232 @@ VAR
 		InsertMnemo("MOVAPS", k, {SSE});
 		InsertOp(k, XReg, XMM128, 0FH, 28H, none, OmReg);
 		InsertOp(k, XMM128, XReg, 0FH, 29H, none, OmReg);
-		
+
 		InsertMnemo("MOVUPS", k, {SSE});
 		InsertOp(k, XReg, XMM128, 0FH, 10H, none, OmReg);
 		InsertOp(k, XMM128, XReg, 0FH, 11H, none, OmReg);
-		
+
 		InsertMnemo("MOVSS", k, {SSE});
 		InsertOpExt(k, XReg, XMM32, 0F3H, 0FH, 10H, none, OmReg);
 		InsertOpExt(k, XMM32, XReg, 0F3H, 0FH, 11H, none, OmReg);
-		
+
 		InsertMnemo("MOVLPS", k, {SSE});
 		InsertOp(k, XReg, M64, 0FH, 12H, none, OmReg);
 		InsertOp(k, M64, XReg, 0FH, 13H, none, OmReg);
-		
+
 		InsertMnemo("MOVHPS", k, {SSE});
 		InsertOp(k, XReg, M64, 0FH, 16H, none, OmReg);
 		InsertOp(k, M64, XReg, 0FH, 17H, none, OmReg);
-				
+
 		InsertMnemo("MOVLHPS", k, {SSE});
 		InsertOp(k, XReg, XReg, 0FH, 16H, none, OmReg);
 
 		InsertMnemo("MOVHLPS", k, {SSE});
 		InsertOp(k, XReg, XReg, 0FH, 12H, none, OmReg);
-		
+
 		InsertMnemo("MOVMSKPS", k, {SSE});
 		InsertOp(k, Reg32, XReg, 0FH, 50H, none, OmReg);
-		
+
 			(* SSE Arithmetic Instructions *)
 		InsertMnemo("ADDPS", k, {SSE});
 		InsertOp(k, XReg, XMM128, 0FH, 58H, none, OmReg);
-		
+
 		InsertMnemo("SUBPS", k, {SSE});
 		InsertOp(k, XReg, XMM128, 0FH, 5CH, none, OmReg);
-		
+
 		InsertMnemo("ADDSS", k, {SSE});
 		InsertOpExt(k, XReg, XMM32, 0F3H, 0FH, 58H, none, OmReg);
-		
+
 		InsertMnemo("SUBSS", k, {SSE});
 		InsertOpExt(k, XReg, XMM32, 0F3H, 0FH, 5CH, none, OmReg);
-		
+
 		InsertMnemo("MULPS", k, {SSE});
 		InsertOp(k, XReg, XMM128, 0FH, 59H, none, OmReg);
-		
+
 		InsertMnemo("MULSS", k, {SSE});
 		InsertOpExt(k, XReg, XMM32, 0F3H, 0FH, 59H, none, OmReg);
-		
+
 		InsertMnemo("DIVPS", k, {SSE});
 		InsertOp(k, XReg, XMM128, 0FH, 5EH, none, OmReg);
-		
+
 		InsertMnemo("DIVSS", k, {SSE});
 		InsertOpExt(k, XReg, XMM32, 0F3H, 0FH, 5EH, none, OmReg);
-		
+
 		InsertMnemo("RCPPS", k, {SSE});
 		InsertOp(k, XReg, XMM128, 0FH, 53H, none, OmReg);
-		
+
 		InsertMnemo("RCPSS", k, {SSE});
 		InsertOpExt(k, XReg, XMM32, 0F3H, 0FH, 53H, none, OmReg);
-		
+
 		InsertMnemo("SQRTPS", k, {SSE});
 		InsertOp(k, XReg, XMM128, 0FH, 51H, none, OmReg);
-		
+
 		InsertMnemo("SQRTSS", k, {SSE});
 		InsertOpExt(k, XReg, XMM32, 0F3H, 0FH, 51H, none, OmReg);
-		
+
 		InsertMnemo("RSQRTPS", k, {SSE});
 		InsertOp(k, XReg, XMM128, 0FH, 52H, none, OmReg);
-		
+
 		InsertMnemo("RSQRTSS", k, {SSE});
 		InsertOpExt(k, XReg, XMM32, 0F3H, 0FH, 52H, none, OmReg);
-		
+
 		InsertMnemo("MAXPS", k, {SSE});
 		InsertOp(k, XReg, XMM128, 0FH, 5FH, none, OmReg);
-		
+
 		InsertMnemo("MAXSS", k, {SSE});
 		InsertOpExt(k, XReg, XMM32, 0F3H, 0FH, 5FH, none, OmReg);
-		
+
 		InsertMnemo("MINPS", k, {SSE});
 		InsertOp(k, XReg, XMM128, 0FH, 5DH, none, OmReg);
-		
+
 		InsertMnemo("MINSS", k, {SSE});
 		InsertOpExt(k, XReg, XMM32, 0F3H, 0FH, 5DH, none, OmReg);
-		
+
 			(* SSE Logical Instructions *)
 		InsertMnemo("ANDPS", k, {SSE});
 		InsertOp(k, XReg, XMM128, 0FH, 54H, none, OmReg);
-		
+
 		InsertMnemo("ANDNPS", k, {SSE});
 		InsertOp(k, XReg, XMM128, 0FH, 55H, none, OmReg);
-		
+
 		InsertMnemo("ORPS", k, {SSE});
 		InsertOp(k, XReg, XMM128, 0FH, 56H, none, OmReg);
-		
+
 		InsertMnemo("XORPS", k, {SSE});
 		InsertOp(k, XReg, XMM128, 0FH, 57H, none, OmReg);
-		
+
 			(* SSE Comparison Instructions *)
 		InsertMnemo("CMPPS", k, {SSE});
 		InsertOp3(k, XReg, XMM128, Imm8, 0FH, 0C2H, none, OmReg);
-		
+
 		InsertMnemo("CMPSS", k, {SSE});
 		InsertOp3Ext(k, XReg, XMM32, Imm8, 0F3H, 0FH, 0C2H, none, OmReg);
-		
+
 		InsertMnemo("COMISS", k, {SSE});
 		InsertOp(k, XReg, XMM32, 0FH, 2FH, none, OmReg);
-		
+
 		InsertMnemo("UCOMISS", k, {SSE});
 		InsertOp(k, XReg, XMM32, 0FH, 2EH, none, OmReg);
-		
+
 			(* SSE Shuffle and Unpack Instructions *)
 		InsertMnemo("SHUFPS", k, {SSE});
 		InsertOp3(k, XReg, XMM128, Imm8, 0FH, 0C6H, none, OmReg);
-		
+
 		InsertMnemo("UNPCKHPS", k, {SSE});
 		InsertOp(k, XReg, XMM128, 0FH, 15H, none, OmReg);
-		
+
 		InsertMnemo("UNPCKLPS", k, {SSE});
 		InsertOp(k, XReg, XMM128, 0FH, 14H, none, OmReg);
-		
+
 			(* SSE Conversion Instructions *)
 		InsertMnemo("CVTPI2PS", k, {SSE});
 		InsertOp(k, XReg, MM64, 0FH, 2AH, none, OmReg);
-		
+
 		InsertMnemo("CVTSI2SS", k, {SSE});
 		InsertOpExt(k, XReg, RM32, 0F3H, 0FH, 2AH, none, OmReg);
-		
+
 		InsertMnemo("CVTPS2PI", k, {SSE});
 		InsertOp(k, MReg, XMM64, 0FH, 2DH, none, OmReg);
-		
+
 		InsertMnemo("CVTTPS2PI", k, {SSE});
 		InsertOp(k, MReg, XMM64, 0FH, 2CH, none, OmReg);
-		
+
 		InsertMnemo("CVTSS2SI", k, {SSE});
 		InsertOpExt(k, Reg32, XMM32, 0F3H, 0FH, 2DH, none, OmReg);
-		
+
 		InsertMnemo("CVTTSS2SI", k, {SSE});
 		InsertOpExt(k, Reg32, XMM32, 0F3H, 0FH, 2CH, none, OmReg);
-		
+
 			(* SSE 64-bit SIMD Integer Instructions *)
 		InsertMnemo("PAVGB", k, {SSE});
 		InsertOp(k, MReg, MM64, 0FH, 0E0H, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0E0H, none, OmReg);
-		
+
 		InsertMnemo("PAVGW", k, {SSE});
 		InsertOp(k, MReg, MM64, 0FH, 0E3H, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0E3H, none, OmReg);
-		
+
 		InsertMnemo("PEXTRW", k, {SSE});
 		InsertOp3(k, Reg32, MReg, Imm8, 0FH, 0C5H, none, OmReg);
 		InsertOp3Ext(k, Reg32, XReg, Imm8, 66H, 0FH, 0C5H, none, OmReg);
-		
+
 		InsertMnemo("PINSRW", k, {SSE});
 		InsertOp3(k, MReg, RM32, Imm8, 0FH, 0C4H, none, OmReg);
 		InsertOp3Ext(k, XReg, RM32, Imm8, 66H, 0FH, 0C4H, none, OmReg);
-		
+
 		InsertMnemo("PMAXUB", k, {SSE});
 		InsertOp(k, MReg, MM64, 0FH, 0DEH, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0DEH, none, OmReg);
-		
+
 		InsertMnemo("PMINUB", k, {SSE});
 		InsertOp(k, MReg, MM64, 0FH, 0DAH, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0DAH, none, OmReg);
-		
+
 		InsertMnemo("PMAXSW", k, {SSE});
 		InsertOp(k, MReg, MM64, 0FH, 0EEH, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0EEH, none, OmReg);
-		
+
 		InsertMnemo("PMINSW", k, {SSE});
 		InsertOp(k, MReg, MM64, 0FH, 0EAH, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0EAH, none, OmReg);
-		
+
 		InsertMnemo("PMOVMSKB", k, {SSE});
 		InsertOp(k, Reg32, MReg, 0FH, 0D7H, none, OmReg);
 		InsertOpExt(k, Reg32, XReg, 66H, 0FH, 0D7H, none, OmReg);
-		
+
 		InsertMnemo("PMULHUW", k, {SSE});
 		InsertOp(k, MReg, MM64, 0FH, 0E4H, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0E4H, none, OmReg);
-		
+
 		InsertMnemo("PSADBW", k, {SSE});
 		InsertOp(k, MReg, MM64, 0FH, 0F6H, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0F6H, none, OmReg);
-		
+
 		InsertMnemo("PSHUFW", k, {SSE});
 		InsertOp3(k, MReg, MM64, Imm8, 0FH, 70H, none, OmReg);
-		
+
 			(* MXCSR State Management Instructions *)
 		InsertMnemo("LDMXCSR", k, {SSE});
 		InsertOp(k, M32, none, 0FH, 0AEH, 2, OmRM);
-		
+
 		InsertMnemo("STMXCSR", k, {SSE});
 		InsertOp(k, M32, none, 0FH, 0AEH, 3, none);
-		
+
 			(* Cacheability Control Instructions *)
 		InsertMnemo("MOVNTQ", k, {SSE});
 		InsertOp(k, M64, MReg, 0FH, 0E7H, none, OmReg);
-		
+
 		InsertMnemo("MOVNTPS", k, {SSE});
 		InsertOp(k, M128, XReg, 0FH, 2BH, none, OmReg);
-		
+
 		InsertMnemo("MASKMOVQ", k, {SSE});
 		InsertOp(k, MReg, MReg, 0FH, 0F7H, none, OmReg);
-		
+
 			(* Prefetch Instructions *)
 		InsertMnemo("PREFETCH0", k, {SSE});
 		InsertOp(k, M8, none, 0FH, 18H, 1, OmRM);
-		
+
 		InsertMnemo("PREFETCH1", k, {SSE});
 		InsertOp(k, M8, none, 0FH, 18H, 2, OmRM);
-		
+
 		InsertMnemo("PREFETCH2", k, {SSE});
 		InsertOp(k, M8, none, 0FH, 18H, 3, OmRM);
-		
+
 		InsertMnemo("PREFETCHNTA", k, {SSE});
 		InsertOp(k, M8, none, 0FH, 18H, 0, OmRM);
-		
+
 			(* SFENCE Instruction *)
 		InsertMnemo("SFENCE", k, {SSE});
 		InsertOp(k, none, none, 0FH, 0AEH, 7, OmRM);
-		
+
 			(* FXSAVE and FXRSTOR Instructions *)
 		InsertMnemo("FXSAVE", k, {SSE});
 		InsertOp(k, M, none, 0FH, 0AEH, 0, OmRM);
-		
+
 		InsertMnemo("FXRSTOR", k, {SSE});
 		InsertOp(k, M, none, 0FH, 0AEH, 1, OmRM);
 	END InsertSSE;
-	
+
 	PROCEDURE InsertSSE2;
 	VAR k: INTEGER;
 	BEGIN
@@ -1727,224 +1727,224 @@ VAR
 		InsertMnemo("MOVAPD", k, {SSE2});
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 28H, none, OmReg);
 		InsertOpExt(k, XMM128, XReg, 66H, 0FH, 29H, none, OmReg);
-		
+
 		InsertMnemo("MOVUPD", k, {SSE2});
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 10H, none, OmReg);
 		InsertOpExt(k, XMM128, XReg, 66H, 0FH, 11H, none, OmReg);
-			
+
 		InsertMnemo("MOVHPD", k, {SSE2});
 		InsertOpExt(k, XReg, M64, 66H, 0FH, 16H, none, OmReg);
 		InsertOpExt(k, M64, XReg, 66H, 0FH, 17H, none, OmReg);
-		
+
 		InsertMnemo("MOVLPD", k, {SSE2});
 		InsertOpExt(k, XReg, M64, 66H, 0FH, 12H, none, OmReg);
 		InsertOpExt(k, M64, XReg, 66H, 0FH, 13H, none, OmReg);
-		
+
 		InsertMnemo("MOVMSKPD", k, {SSE2});
 		InsertOpExt(k, Reg32, XReg, 66H, 0FH, 50H, none, OmReg);
-	
+
 			(* SSE2 Arithmetic Instructions *)
 		InsertMnemo("ADDPD", k, {SSE2});
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 58H, none, OmReg);
-		
+
 		InsertMnemo("SUBPD", k, {SSE2});
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 5CH, none, OmReg);
-		
+
 		InsertMnemo("ADDSD", k, {SSE2});
 		InsertOpExt(k, XReg, XMM64, 0F2H, 0FH, 58H, none, OmReg);
-		
+
 		InsertMnemo("SUBSD", k, {SSE2});
 		InsertOpExt(k, XReg, XMM64, 0F2H, 0FH, 5CH, none, OmReg);
-		
+
 		InsertMnemo("MULPD", k, {SSE2});
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 59H, none, OmReg);
-		
+
 		InsertMnemo("MULSD", k, {SSE2});
 		InsertOpExt(k, XReg, XMM64, 0F2H, 0FH, 59H, none, OmReg);
-		
+
 		InsertMnemo("DIVPD", k, {SSE2});
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 5EH, none, OmReg);
-		
+
 		InsertMnemo("DIVSD", k, {SSE2});
 		InsertOpExt(k, XReg, XMM64, 0F2H, 0FH, 5EH, none, OmReg);
-		
+
 		InsertMnemo("SQRTPD", k, {SSE2});
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 51H, none, OmReg);
-		
+
 		InsertMnemo("SQRTSQ", k, {SSE2});
 		InsertOpExt(k, XReg, XMM64, 0F2H, 0FH, 51H, none, OmReg);
-		
+
 		InsertMnemo("MAXPD", k, {SSE2});
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 5FH, none, OmReg);
-	
+
 		InsertMnemo("MAXSD", k, {SSE2});
 		InsertOpExt(k, XReg, XMM64, 0F2H, 0FH, 5FH, none, OmReg);
-		
+
 		InsertMnemo("MINPD", k, {SSE2});
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 5DH, none, OmReg);
-		
+
 		InsertMnemo("MINSD", k, {SSE2});
 		InsertOpExt(k, XReg, XMM64, 0F2H, 0FH, 5DH, none, OmReg);
-		
+
 			(* SSE2 Logical Instructions *)
 		InsertMnemo("ANDPD", k, {SSE2});
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 54H, none, OmReg);
-		
+
 		InsertMnemo("ANDNPD", k, {SSE2});
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 55H, none, OmReg);
-		
+
 		InsertMnemo("ORPD", k, {SSE2});
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 56H, none, OmReg);
-		
+
 		InsertMnemo("XORPD", k, {SSE2});
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 57H, none, OmReg);
-		
+
 			(* SSE2 Comparison Instructions *)
 		InsertMnemo("CMPPD", k, {SSE2});
 		InsertOp3Ext(k, XReg, XMM128, Imm8, 66H, 0FH, 0C2H, none, OmReg);
-				
+
 		InsertMnemo("COMISD", k, {SSE2});
 		InsertOpExt(k, XReg, XMM64, 66H, 0FH, 2FH, none, OmReg);
-		
+
 		InsertMnemo("UCOMISD", k, {SSE2});
 		InsertOpExt(k, XReg, XMM64, 66H, 0FH, 2EH, none, OmReg);
-		
+
 			(* SSE2 Shuffle and Unpack Instructions *)
 		InsertMnemo("SHUFPD", k, {SSE2});
 		InsertOp3Ext(k, XReg, XMM128, Imm8, 66H, 0FH, 0C6H, none, OmReg);
-		
+
 		InsertMnemo("UNPCKHPD", k, {SSE2});
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 15H, none, OmReg);
-		
+
 		InsertMnemo("UNPCKLPD", k, {SSE2});
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 14H, none, OmReg);
-		
+
 			(* SSE2 Conversion Instructions *)
 		InsertMnemo("CVTPS2PD", k, {SSE2});
 		InsertOp(k, XReg, XMM64, 0FH, 5AH, none, OmReg);
-		
+
 		InsertMnemo("CVTPD2PS", k, {SSE2});
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 5AH, none, OmReg);
-		
+
 		InsertMnemo("CVTSS2SD", k, {SSE2});
 		InsertOpExt(k, XReg, XMM32, 0F3H, 0FH, 5AH, none, OmReg);
-		
+
 		InsertMnemo("CVTSD2SS", k, {SSE2});
 		InsertOpExt(k, XReg, XMM64, 0F2H, 0FH, 5AH, none, OmReg);
-		
+
 		InsertMnemo("CVTPD2PI", k, {SSE2});
 		InsertOpExt(k, MReg, XMM128, 66H, 0FH, 2DH, none, OmReg);
-		
+
 		InsertMnemo("CVTTPD2PI", k, {SSE2});
 		InsertOpExt(k, MReg, XMM128, 66H, 0FH, 2CH, none, OmReg);
-		
+
 		InsertMnemo("CVTPI2PD", k, {SSE2});
 		InsertOpExt(k, XReg, MM64, 66H, 0FH, 2AH, none, OmReg);
-		
+
 		InsertMnemo("CVTPD2DQ", k, {SSE2});
 		InsertOpExt(k, XReg, XMM128, 0F2H, 0FH, 0E6H, none, OmReg);
-		
+
 		InsertMnemo("CVTTPD2DQ", k, {SSE2});
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0E6H, none, OmReg);
-		
+
 		InsertMnemo("CVTDQ2PD", k, {SSE2});
 		InsertOpExt(k, XReg, XMM64, 0F3H, 0FH, 0E6H, none, OmReg);
-		
+
 		InsertMnemo("CVTSD2SI", k, {SSE2});
 		InsertOpExt(k, Reg32, XMM64, 0F2H, 0FH, 2DH, none, OmReg);
-		
+
 		InsertMnemo("CVTTSD2SI", k, {SSE2});
 		InsertOpExt(k, Reg32, XMM64, 0F2H, 0FH, 2CH, none, OmReg);
-		
+
 		InsertMnemo("CVTSI2SD", k, {SSE2});
 		InsertOpExt(k, XReg, RM32, 0F2H, 0FH, 2AH, none, OmReg);
-		
+
 		InsertMnemo("CVTPS2DQ", k, {SSE2});
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 5BH, none, OmReg);
-		
+
 		InsertMnemo("CVTTPS2DQ", k, {SSE2});
 		InsertOpExt(k, XReg, XMM128, 0F3H, 0FH, 5BH, none, OmReg);
-		
+
 		InsertMnemo("CVTDQ2PS", k, {SSE2});
 		InsertOp(k, XReg, XMM128, 0FH, 5BH, none, OmReg);
-		
+
 			(* SSE2 64-Bit and 128-Bit SIMD Integer Instructions *)
 		InsertMnemo("MOVDQA", k, {SSE2});
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 6FH, none, OmReg);
 		InsertOpExt(k, XMM128, XReg, 66H, 0FH, 7FH, none, OmReg);
-		
+
 		InsertMnemo("MOVDQU", k, {SSE2});
 		InsertOpExt(k, XReg, XMM128, 0F3H, 0FH, 6FH, none, OmReg);
 		InsertOpExt(k, XMM128, XReg, 0F3H, 0FH, 7FH, none, OmReg);
-		
+
 		InsertMnemo("PADDQ", k, {SSE2});
 		InsertOp(k, MReg, MM64, 0FH, 0D4H, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0D4H, none, OmReg);
-		
+
 		InsertMnemo("PSUBQ", k, {SSE2});
 		InsertOp(k, MReg, MM64, 0FH, 0FBH, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0FBH, none, OmReg);
-		
+
 		InsertMnemo("PMULUDQ", k, {SSE2});
 		InsertOp(k, MReg, MM64, 0FH, 0F4H, none, OmReg);
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 0F4H, none, OmReg);
-		
+
 		InsertMnemo("PSHUFLW", k, {SSE2});
 		InsertOp3Ext(k, XReg, XMM128, Imm8, 0F2H, 0FH, 70H, none, OmReg);
-		
+
 		InsertMnemo("PSHUFHW", k, {SSE2});
 		InsertOp3Ext(k, XReg, XMM128, Imm8, 0F3H, 0FH, 70H, none, OmReg);
-		
+
 		InsertMnemo("PSHUFD", k, {SSE2});
 		InsertOp3Ext(k, XReg, XMM128, Imm8, 66H, 0FH, 70H, none, OmReg);
-		
+
 		InsertMnemo("PSLLDQ", k, {SSE2});
 		InsertOpExt(k, XReg, Imm8, 66H, 0FH, 73H, 7, OmRM);
-		
+
 		InsertMnemo("PSRLDQ", k, {SSE2});
 		InsertOpExt(k, XReg, Imm8, 66H, 0FH, 73H, 3, OmRM);
-				
+
 		InsertMnemo("PUNPCKHQDQ", k, {SSE2});
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 6DH, none, OmReg);
-				
+
 		InsertMnemo("PUNPCKLQDQ", k, {SSE2});
 		InsertOpExt(k, XReg, XMM128, 66H, 0FH, 6CH, none, OmReg);
-		
+
 		InsertMnemo("MOVQ2DQ", k, {SSE2});
 		InsertOpExt(k, XReg, MReg, 0F3H, 0FH, 0D6H, none, OmReg);
-		
+
 		InsertMnemo("MOVDQ2Q", k, {SSE2});
 		InsertOpExt(k, MReg, XReg, 0F2H, 0FH, 0D6H, none, OmReg);
-		
+
 			(* Flush Cache Line *)
 		InsertMnemo("CLFLUSH", k, {SSE2});
 		InsertOp(k, M8, none, 0FH, 0AEH, 7, OmRM);
-		
+
 			(* Cacheability Control Instructions *)
 		InsertMnemo("MOVNTDQ", k, {SSE2});
 		InsertOpExt(k, M128, XReg, 66H, 0FH, 0E7H, none, OmReg);
-		
+
 		InsertMnemo("MOVNTPD", k, {SSE2});
 		InsertOpExt(k, M128, XReg, 66H, 0FH, 2BH, none, OmReg);
-		
+
 		InsertMnemo("MOVNTI", k, {SSE2});
 		InsertOp(k, M32, Reg32, 0FH, 0C3H, none, OmReg);
-		
+
 		InsertMnemo("MASKMOVDQU", k, {SSE2});
 		InsertOpExt(k, XReg, XReg, 66H, 0FH, 0F7H, none, OmReg);
-		
+
 			(* Memory Ordering Instructions *)
 		InsertMnemo("LFENCE", k, {SSE2});
 		InsertOp(k, none, none, 0FH, 0AEH, 5, OmRM);
-		
+
 		InsertMnemo("MFENCE", k, {SSE2});
 		InsertOp(k, none, none, 0FH, 0AEH, 6, OmRM);
-		
+
 			(* Pause *)
 		InsertMnemo("PAUSE", k, {SSE2});
 		InsertOp(k, none, none, 0F3H, 90H, none, none);
 	END InsertSSE2;
-	
+
 PROCEDURE Insert(nofInstr, nofOps: INTEGER);
 VAR k: INTEGER;
 BEGIN
@@ -1970,7 +1970,7 @@ BEGIN
 	Texts.Scan(S); min := SHORT(S.i);
 	Texts.Scan(S); max := SHORT(S.i);
 	Texts.Scan(S); OpTabLen := SHORT(S.i);
-	
+
 	bestV := MAX(LONGINT);
 	Texts.WriteString(W, "Table Size (KB)   Avg Search Len"); Texts.WriteLn(W);
 	FOR j := min TO max DO
@@ -1980,7 +1980,7 @@ BEGIN
 		IF Average < bestV THEN  bestV := Average;  best := j  END;
 		Texts.Append(Oberon.Log, W.buf)
 	END;
-	
+
 	Texts.WriteLn(W);
 	Texts.WriteString(W, "Best: "); Texts.WriteInt(W, best, 4); Texts.WriteString(W, "  avg = ");
 	Texts.WriteLongRealFix(W, bestV / InstrCount, 8, 3, 0); Texts.WriteLn(W);
@@ -1994,7 +1994,7 @@ BEGIN
 	Texts.Scan(S); k := SHORT(S.i);
 	Texts.Scan(S); j := SHORT(S.i);
 	Insert(k, j);
-	
+
 	Texts.WriteString(W, "InstrTab : "); Texts.WriteInt(W, InstrCount,1); Texts.WriteString(W, "/"); Texts.WriteInt(W, InstrTabLen,1);
 	Texts.WriteRealFix(W, InstrCount/InstrTabLen*100, 5, 2, 0); Texts.WriteString(W, "% used"); Texts.WriteLn(W);
 	Texts.WriteString(W, "Table size: "); Texts.WriteLongRealFix(W, j*SIZE(InstrDesc) / 1024, 4, 2, 0);
@@ -2029,7 +2029,7 @@ BEGIN
 	END;
 	Texts.WriteString(W, name);
 	f := Files.New(name); Files.Set(r, f, 0);
-	
+
 	Texts.WriteString(W, " with InstrTabLen = "); Texts.WriteInt(W, InstrTabLen, 0);
 	Files.WriteInt(r, InstrTabLen);
 	FOR i := 0 TO InstrTabLen-1 DO
@@ -2039,7 +2039,7 @@ BEGIN
 			Files.WriteSet(r, InstrTab[i].target)
 		END
 	END;
-	
+
 	Texts.WriteString(W, " and OpTabLen = "); Texts.WriteInt(W, OpTabN, 0); Texts.WriteLn(W);
 	Texts.WriteInt(W, Files.Pos(r),1); Texts.WriteLn(W);
 	Files.WriteInt(r, OpTabN);
@@ -2059,10 +2059,10 @@ END ExportTables;
 		s: ARRAY 32 OF CHAR;
 BEGIN
 	Docu := TRUE;
-	
+
 	Texts.OpenWriter(Pad);
 	NEW(t); Texts.Open(t, "");
-		
+
 	(*read table*)
 	f := Files.Old(FileName);
 	IF f # NIL THEN
@@ -2187,11 +2187,11 @@ BEGIN
 	END;
 	Texts.WriteString(W, "</TABLE></BODY>"); Texts.WriteLn(W);
 	Texts.WriteString(Pad, "]<BR><HR><BR>"); Texts.WriteLn(Pad); Texts.WriteLn(Pad);
-	
+
 	NEW(t); Texts.Open(t, ""); Texts.Append(t, Pad.buf); Texts.Append(t, W.buf);
 	Oberon.OpenText("instructions.html", t, 640, 400)
 END DumpInstructions;
-	
+
 BEGIN	Docu := FALSE; Texts.OpenWriter(W)
 END OPAData.
 

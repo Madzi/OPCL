@@ -13,7 +13,7 @@ MODULE OPO;
 
 	(* item modes for Intel i386 (must not overlap item basemodes, > 13 *)
 		Reg* = 15; Abs* = 16; RegRel* = 17; Coc* = 18;
-	
+
 	(* mode and scale factors *)
 	noScale* = 0; Scale1* = 0; Scale2* = 1; Scale4* = 2; Scale8* = 3;	(* scale factors *)
 	RegReg* 	= 0;	(* register to register *)
@@ -78,17 +78,17 @@ MODULE OPO;
 
 		(* Wait *)
 		WAIT* = 9BH;
-		
+
 		(* GenFop1 *)
 		FCOMPP* = 0; FTST* = 1; FLDZ* = 2; FLD1* = 3; FABS* = 4; FCHS* = 5; FSTSW* = 6; FINCSTP* = 7; FDECSTP* = 8;
-		
+
 		(* general *)
 		SAHF* = 9EH; CLD* = 0FCH; STD* = 0FDH; CBW* = 98H; CWD* = 99H (* = CDQ *);
 		CLI* = 0FAH; STI* = 0FBH;
-		
+
 	TYPE
 		ConstArray* = POINTER TO ARRAY OF CHAR;
-		
+
 	VAR
 	pc*, dsize*: LONGINT; 		(* code size, data size *)
 	csize*: LONGINT;		(* constant size *)
@@ -111,7 +111,7 @@ MODULE OPO;
 			IF pc >= OPM.breakpc THEN OPM.err(255); OPM.breakpc := MAX(LONGINT) END; (* << mh 30.8.94 *)
 		END
 	END PutByte;
-	
+
 	PROCEDURE PutWord (w: LONGINT);
 	BEGIN
 		IF pc >= CodeLength - 2 THEN
@@ -149,7 +149,7 @@ MODULE OPO;
 		pc:= pos; PutByte (byte);
 		pc:= currentPC
 	END PutByteAt;
-	
+
 	PROCEDURE PutDWordAt* (pos, dw: LONGINT);
 		VAR currentPC: LONGINT;
 	BEGIN
@@ -162,7 +162,7 @@ MODULE OPO;
 	BEGIN
 		byte:= ORD (code [pos])
 	END GetByte;
-	
+
 	PROCEDURE GetDWord* (pos: LONGINT; VAR dw: LONGINT);
 		VAR byte: INTEGER;
 	BEGIN
@@ -171,7 +171,7 @@ MODULE OPO;
 		IF byte >= 128 THEN byte:= byte - 256 END;
 		dw:= LONG (byte) * 1000000H + dw
 	END GetDWord;
-	
+
 	PROCEDURE PutConsDWord* (pos, dw: LONGINT);
 	BEGIN
 		constant [pos]:= CHR ( dw MOD 100H); (* low byte first *)
@@ -179,7 +179,7 @@ MODULE OPO;
 		constant [pos+2]:= CHR ( ( dw DIV 10000H) MOD 100H);
 		constant [pos+3]:= CHR (dw DIV 1000000H)
 	END PutConsDWord;
-	
+
 	PROCEDURE GetConsDWord* (pos: LONGINT; VAR dw: LONGINT);
 		VAR byte: INTEGER;
 	BEGIN
@@ -188,7 +188,7 @@ MODULE OPO;
 		IF byte >= 128 THEN byte:= byte - 256 END;
 		dw:= LONG (byte) * 1000000H + dw
 	END GetConsDWord;
-		
+
 	PROCEDURE PutReg (reg1, reg2: INTEGER);
 	(* encodes register register addressing mode *)
 	BEGIN
@@ -243,7 +243,7 @@ MODULE OPO;
 			END
 		END
 	END PutRegMem;
-	
+
 	PROCEDURE PutMem (reg, base, inx: INTEGER; scale: SHORTINT; disp: LONGINT);
 	(* put memory *)
 	BEGIN
@@ -255,7 +255,7 @@ MODULE OPO;
 		ELSE PutRMInx (RegRel, reg, base, inx, scale, disp)
 		END
 	END PutMem;
-	
+
 	PROCEDURE PutDisp (disp: LONGINT; size: INTEGER);
 	BEGIN
 		lastImmSize:= SHORT (size);
@@ -264,7 +264,7 @@ MODULE OPO;
 		ELSE PutDWord (disp) (* size =  Bit32 *)
 		END
 	END PutDisp;
-	
+
 	PROCEDURE Prefix* (reg: INTEGER; VAR w: SHORTINT);
 	(* put out the Operand Size Prefix if necessary
 		w = 0 : 8 bit data w= 1: 16/32 bit data *)
@@ -275,7 +275,7 @@ MODULE OPO;
 		ELSE w:= 0
 		END
 	END Prefix;
-		
+
 	PROCEDURE GenMOV* (mode: SHORTINT; reg, base, inx: INTEGER; scale: SHORTINT; disp, imm: LONGINT);
 		VAR w: SHORTINT; r: INTEGER;
 	BEGIN
@@ -342,7 +342,7 @@ MODULE OPO;
 		 | Bit8: PutByte(0ECH);	    (* IN AL, DX *)
 		 END
 	END GenIN;
-	
+
 	PROCEDURE GenOUT* (size: INTEGER);
 	BEGIN
 		CASE size OF
@@ -371,7 +371,7 @@ MODULE OPO;
 		ELSE HALT (BUG)
 		END
 	END GenPUSH;
-	
+
 	PROCEDURE GenPOP* (mode: SHORTINT; reg, base, inx: INTEGER; scale: SHORTINT; disp: LONGINT);
 		VAR w: SHORTINT;
 	BEGIN
@@ -452,7 +452,7 @@ MODULE OPO;
 		ELSE HALT (BUG)
 		END
 	END GenTyp1;
-		
+
 	PROCEDURE GenINC* (mode: SHORTINT; reg, base, inx: INTEGER; scale: SHORTINT; disp: LONGINT);
 		VAR w: SHORTINT;
 	BEGIN
@@ -467,7 +467,7 @@ MODULE OPO;
 			PutByte (0FEH + w); PutMem (0, base, inx, scale, disp)
 		END
 	END GenINC;
-	
+
 	PROCEDURE GenDEC* (mode: SHORTINT; reg, base, inx: INTEGER; scale: SHORTINT; disp: LONGINT);
 		VAR w: SHORTINT;
 	BEGIN
@@ -584,7 +584,7 @@ MODULE OPO;
 		Prefix (size, w);
 		PutByte (0F3H); PutByte (op * 2 + w)
 	END GenRepString;
-	
+
 	PROCEDURE GenRepCmpsScas* (op, size: INTEGER);
 	(* REPE CMPS, REPE SCAS *)
 		VAR w: SHORTINT;
@@ -592,7 +592,7 @@ MODULE OPO;
 		Prefix (size, w);
 		PutByte (0F3H); PutByte (op * 2 + w)
 	END GenRepCmpsScas;
-	
+
 	PROCEDURE GenTEST* (mode: SHORTINT; reg, base, inx: INTEGER; scale: SHORTINT; disp, imm: LONGINT);
 		VAR w: SHORTINT;
 	BEGIN
@@ -618,7 +618,7 @@ MODULE OPO;
 		ELSE HALT (BUG)
 		END
 	END GenTEST;
-	
+
 	PROCEDURE GenBT* (mode: SHORTINT; reg, base, inx: INTEGER; scale: SHORTINT; disp, imm: LONGINT);
 		VAR w: SHORTINT;
 	BEGIN
@@ -699,7 +699,7 @@ MODULE OPO;
 			END
 		END
 	END GenJMP;
-	
+
 	PROCEDURE GenRET* (size: LONGINT);
 	(* no intersegemt return implemented yet *)
 	BEGIN
@@ -716,7 +716,7 @@ MODULE OPO;
 			PutByte (0C2H); PutWord (size)
 		END
 	END GenRET;
-	
+
 	PROCEDURE GenJcc* (op: SHORTINT; disp: LONGINT);
 	(*
 		jo, jno, jb/jnae, jnb/jae, je/jz, jne/jnz, jbe/jna, jnbe/ja, js, jns, jp/jpe, jnp/jpo, jl/jnge, jnl/jge, jnle/jg
@@ -757,7 +757,7 @@ MODULE OPO;
 	END InlineCode;
 
 (* floating point encoding *)
-	
+
 	PROCEDURE GenFLD* (mode, size: SHORTINT; base, inx: INTEGER; scale: SHORTINT; disp: LONGINT);
 	BEGIN
 		CASE mode OF
@@ -820,7 +820,7 @@ MODULE OPO;
 		ELSE HALT (BUG)
 		END
 	END GenFCOMP;
-	
+
 	PROCEDURE GenFtyp1* (op, mode, size: SHORTINT; base, inx: INTEGER; scale: SHORTINT; disp: LONGINT);
 	BEGIN
 		CASE mode OF
@@ -847,26 +847,26 @@ MODULE OPO;
 		ELSE GenFtyp1 (4, mode, size, base, inx, scale, disp)
 		END
 	END GenFSUB;
-	
+
 	PROCEDURE GenFSUBR* (mode, size: SHORTINT; base, inx: INTEGER; scale: SHORTINT; disp: LONGINT);
 	BEGIN
 		IF (mode = StReg) OR (mode = StRegP) THEN GenFtyp1 (4, mode, size, base, inx, scale, disp)
 		ELSE GenFtyp1 (5, mode, size, base, inx, scale, disp)
 		END
 	END GenFSUBR;
-	
+
 	PROCEDURE GenFMUL* (mode, size: SHORTINT; base, inx: INTEGER; scale: SHORTINT; disp: LONGINT);
 	BEGIN
 		GenFtyp1 (1, mode, size, base, inx, scale, disp)
 	END GenFMUL;
-	
+
 	PROCEDURE GenFDIV* (mode, size: SHORTINT; base, inx: INTEGER; scale: SHORTINT; disp: LONGINT);
 	BEGIN
 		IF (mode = StReg) OR (mode = StRegP) THEN GenFtyp1 (7, mode, size, base, inx, scale, disp)
 		ELSE GenFtyp1 (6, mode, size, base, inx, scale, disp)
 		END
 	END GenFDIV;
-	
+
 	PROCEDURE GenFDIVR* (mode, size: SHORTINT; base, inx: INTEGER; scale: SHORTINT; disp: LONGINT);
 	BEGIN
 		IF (mode = StReg) OR (mode = StRegP) THEN GenFtyp1 (6, mode, size, base, inx, scale, disp)
@@ -878,7 +878,7 @@ MODULE OPO;
 	BEGIN
 		PutByte (0DDH); PutByte (0C0H + freg)
 	END GenFFREE;
-	
+
 	PROCEDURE GenFop1* (op: INTEGER);
 	BEGIN
 		CASE op OF

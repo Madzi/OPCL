@@ -101,7 +101,7 @@ MODULE Kernel32; (** non-portable / source: Win32.Kernel32.Mod *)	(* ejz *)
 
 		(** WaitForSingleObject infinite time value *)
 		Infinite* = 0FFFFFFFFH;
-		
+
 		(** WaitForSingleObject return values *)
 		WaitTimeout* = 0102H;
 
