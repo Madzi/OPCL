@@ -1,13 +1,13 @@
 PROGRAM HelloCon
 SUBSYSTEM CUI
-IMGVERSION 2.4
+IMGVERSION 2.5
 HEAPSIZE 010000H
 MODULES
 	Kernel32, Kernel, ADVAPI32, Registry, FileDir, Files, Modules, HelloCon
 IMPORTS
 	Kernel.bootHeapAdr = HeapAdr,
 	Kernel.bootHeapSize = HeapSize,
-	Kernel.hInstance = hInstance,
+	Kernel.isEXE = isEXE,
 	Kernel32.AllocConsole = KERNEL32.AllocConsole,
 	Kernel32.CloseHandle = KERNEL32.CloseHandle,
 	Kernel32.CopyFile = KERNEL32.CopyFileA,
@@ -120,7 +120,7 @@ ICONS
 VERSION
 	CompanyName = "Institute for Computer Systems of ETH Zurich",
 	FileDescription = "ETH PlugIn Oberon Hello",
-	FileVersion = "Release 2.4",
-	LegalCopyright = "(c) 2000 Team of the Institute for Computer Systems of ETH Zurich",
+	FileVersion = "Release 2.5",
+	LegalCopyright = "(c) 2004 Team of the Institute for Computer Systems of ETH Zurich",
 	LegalTrademarks = '"Oberon" and "Gadgets" are trademarks of Eidgenussische Technische Hochschule, Zurich (ETHZ)',
 	OriginalFilename = "HelloCon.EXE"

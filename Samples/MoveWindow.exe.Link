@@ -1,13 +1,13 @@
 PROGRAM MoveWindow   
 SUBSYSTEM GUI
-IMGVERSION 2.4
+IMGVERSION 2.5
 HEAPSIZE 100000H
 MODULES
 	Kernel32, Kernel, MoveWindow
 IMPORTS
 	Kernel.bootHeapAdr = HeapAdr,
 	Kernel.bootHeapSize = HeapSize,
-	Kernel.hInstance = hInstance,
+	Kernel.isEXE = isEXE,
 	Kernel32.AllocConsole = KERNEL32.AllocConsole,
 	Kernel32.CloseHandle = KERNEL32.CloseHandle,
 	Kernel32.CopyFile = KERNEL32.CopyFileA,
@@ -127,3 +127,10 @@ IMPORTS
 	MoveWindow.Gdi32CreateSolidBrush = GDI32.CreateSolidBrush
 ICONS
 	Oberon = Oberon.ico
+VERSION
+	CompanyName = "Institute for Computer Systems of ETH Zurich",
+	FileDescription = "ETH PlugIn Oberon Sample",
+	FileVersion = "Release 2.5",
+	LegalCopyright = "(c) 2004 Team of the Institute for Computer Systems of ETH Zurich",
+	LegalTrademarks = '"Oberon" and "Gadgets" are trademarks of Eidgenussische Technische Hochschule, Zurich (ETHZ)',
+	OriginalFilename = "MoveWindow.EXE"

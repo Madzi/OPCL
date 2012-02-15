@@ -1,6 +1,6 @@
 LIBRARY HelloDLL
 SUBSYSTEM GUI
-IMGVERSION 2.4
+IMGVERSION 2.5
 HEAPSIZE 010000H
 MODULES
 	Kernel32, Kernel,
@@ -111,7 +111,7 @@ ICONS
 VERSION
 	CompanyName = "Institute for Computer Systems of ETH Zurich",
 	FileDescription = "ETH PlugIn Oberon Hello",
-	FileVersion = "Release 2.4",
-	LegalCopyright = "(c) 2000 Team of the Institute for Computer Systems of ETH Zurich",
+	FileVersion = "Release 2.5",
+	LegalCopyright = "(c) 2004 Team of the Institute for Computer Systems of ETH Zurich",
 	LegalTrademarks = '"Oberon" and "Gadgets" are trademarks of Eidgenussische Technische Hochschule, Zurich (ETHZ)',
 	OriginalFilename = "HelloDLL.DLL"
