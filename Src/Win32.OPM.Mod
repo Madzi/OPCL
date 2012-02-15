@@ -123,7 +123,7 @@ MODULE OPM;	(** non-portable *)
 		traceprocs* = 24;	(** trace procedure calls *)	(* temp *)
 		
 		DefaultCodeOpt* = {inxchk, typchk, ptrinit, fullstackinit, assert};
-		DefaultParserOpt* = {};
+		DefaultParserOpt* = {newsf};
 		
 		NewFileFormat* = FALSE;
 
