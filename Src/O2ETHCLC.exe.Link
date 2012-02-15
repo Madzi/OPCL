@@ -10,7 +10,7 @@ MODULES
 IMPORTS
 	Kernel.bootHeapAdr = HeapAdr,
 	Kernel.bootHeapSize = HeapSize,
-	Kernel.hInstance = hInstance,
+	Kernel.isEXE = isEXE,
 	Kernel32.AllocConsole = KERNEL32.AllocConsole,
 	Kernel32.ClearCommBreak = KERNEL32.ClearCommBreak,
 	Kernel32.ClearCommError = KERNEL32.ClearCommError,
