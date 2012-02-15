@@ -129,7 +129,7 @@ MODULE OPM;	(** non-portable *)
 
 	TYPE
 		TextPos* = RECORD
-			pos, line, col, prevcol: LONGINT;	(* current text position, line, column and previous column in source file *)
+			pos, line, col: LONGINT;	(* current text position, line and column in source file *)
 		END;
 
 	VAR
@@ -165,13 +165,11 @@ MODULE OPM;	(** non-portable *)
 		RefFile, ObjFile, ModFile, oldSymFile, newSymFile: Files.File;
 
 	PROCEDURE TextPosInit*(VAR txt: TextPos; pos: LONGINT);
-	BEGIN txt.line := 1; txt.col := 0; txt.prevcol := 0; txt.pos := pos;
+	BEGIN txt.line := 1; txt.col := 0; txt.pos := pos;
 	END TextPosInit;
 
 	PROCEDURE TextPosPrev*(VAR dest: TextPos; src: TextPos);
-	BEGIN dest.pos := src.pos - 1; dest.col := src.prevcol;
-		dest.line := src.line; IF src.col = 0 THEN DEC(src.line) END;
-		dest.prevcol := src.prevcol; IF dest.prevcol > 0 THEN DEC(dest.prevcol) END;
+	BEGIN dest.pos := src.pos - 1; dest.col := src.col - 1; dest.line := src.line;
 	END TextPosPrev;
 
 	PROCEDURE Init*(codeOpt, parserOpt: SET; source: Texts.Reader; log: Texts.Text);
@@ -196,10 +194,10 @@ MODULE OPM;	(** non-portable *)
 			prevch := ch;
 			Texts.Read(inR, ch); INC(curpos.pos);
 			CASE ch OF	(* supported 0DX (Oberon), 0AX (UNIX), 0DX+0AX (Windows) *)
-			| 0DX: INC(curpos.line); curpos.prevcol := curpos.col; curpos.col := 0;	(* the Oberon end of line character *)
-			| 0AX: IF prevch # 0DX THEN INC(curpos.line); curpos.prevcol := curpos.col; curpos.col := 0 END;	(* the UNIX end of line character *)
+			| 0DX: INC(curpos.line); curpos.col := 0;	(* the Oberon end of line character *)
+			| 0AX: IF prevch # 0DX THEN INC(curpos.line); curpos.col := 0 END;	(* the UNIX end of line character *)
 			ELSE
-				curpos.prevcol := curpos.col; INC(curpos.col);
+				INC(curpos.col);
 			END;
 		(*UNTIL inR.eot OR ((inR.lib # NIL) & (inR.lib IS Fonts.Font))*)
 	END Get;
@@ -294,10 +292,8 @@ MODULE OPM;	(** non-portable *)
 			noerr := FALSE;
 			IF (pos.pos < lastpos) OR (lastpos + 9 < pos.pos) OR (n>=450) & (n<=460) OR (n=155) THEN lastpos := pos.pos;
 				LogWLn; LogW(9X); LogW(9X);
-				IF (n<450) OR (n>460) THEN LogWStr("line");
-					IF pos.col # 0 THEN LogWNum(pos.line, 7); LogWStr("  col"); LogWNum(pos.col, 5);
-					ELSE LogWNum(pos.line - 1, 7); LogWStr("  col"); LogWNum(pos.prevcol, 5);
-					END;
+				IF (n<450) OR (n>460) THEN
+					LogWStr("line"); LogWNum(pos.line, 7); LogWStr("  col"); LogWNum(pos.col, 5);
 					IF n = 255 THEN LogWStr("  pc "); LogWHex(breakpc); breakpos := pos.pos
 					ELSIF n = 254 THEN LogWStr("  pc not found")
 					ELSE LogWStr("  err"); LogWNum(n, 4); ErrorMsg(n)
@@ -310,10 +306,7 @@ MODULE OPM;	(** non-portable *)
 				END
 			END
 		ELSIF warning IN parserOptions THEN
-			LogWLn; LogW(9X); LogW(9X); LogWStr("line");
-			IF pos.col # 0 THEN LogWNum(pos.line, 7); LogWStr("  col"); LogWNum(pos.col, 5);
-			ELSE LogWNum(pos.line - 1, 7); LogWStr("  col"); LogWNum(pos.prevcol, 5);
-			END;
+			LogWLn; LogW(9X); LogW(9X); LogWStr("line"); LogWNum(pos.line, 7); LogWStr("  col"); LogWNum(pos.col, 5);
 			LogWStr("  warning"); LogWNum(-n, 4);
 			ErrorMsg(-n)
 		END
