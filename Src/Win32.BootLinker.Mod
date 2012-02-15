@@ -16,20 +16,20 @@ MODULE BootLinker;	(** non-portable *)	(** JdV / dVdW / pjm / prk *)
 		- Thomas Kistler (kistler@inf.ethz.ch)
 
 	Original version for the Eamon system:
-		- Patrik Reali (prk), ETH Z...rich (reali@inf.ethz.ch)
-		
+		- Patrik Reali (prk), ETH Z…rich (reali@inf.ethz.ch)
+
 	This version for the Femto system:
-		- Patrik Reali (prk), ETH Z...rich (reali@inf.ethz.ch)
-	
+		- Patrik Reali (prk), ETH Z…rich (reali@inf.ethz.ch)
+
 	Eamon -> Femto:
 		- remove lock optimization: \check, \curproc are not used anymore. (also the magic offset)
 		- remove the OBJECT base type for protection
-		
+
 	Generated File:
-	
+
 		the generated file is an image of the memory after loading and linking the core modules. Every
 		module is loaded at the address ".base" and the whole has size ".imageSize".
-		
+
 	m.base	Entries
 		Commands
 		Pointers
@@ -40,7 +40,7 @@ MODULE BootLinker;	(** non-portable *)	(** JdV / dVdW / pjm / prk *)
 		References
 		ModuleDesc
 	+m.imageSize
-		
+
 	Changes:
 		integration of the OberonX changes (fixups 243, 242)
 		( arrHdr, new format and size (16->24)), moved to the global declarations
@@ -51,19 +51,19 @@ IMPORT
 
 CONST
 	Boundary = 32;	(* boundaries on which Oberon GC allocates blocks (=32) *)
-	
+
 	Trace = TRUE;
 	TraceMore = FALSE;
 
 	(* SysFix constants *)
-	MaxSF = 17; 	
+	MaxSF = 17;
 	newSF = 0; sysnewSF = 1; newarrSF = 2; StartSF = 3; PassivateSF = 4; ActivateSF = 5; LockSF = 6;
 	UnlockSF = 7; (*CheckSF = 8; newsysarrSF = 9;*) copyarraySF = 10;
 	CurProcSF = 11; commandSF = 12; listSF = 13; modDescSF = 14; expDescSF = 15; objectSF = 16;
 
 	(** FindAdr modes *)
 	Proc* = 0; Var* = 1;
-	
+
 	OFVersion = 0AFX;
 
 	PaddingSize = 64;
@@ -104,12 +104,12 @@ TYPE
 	NewMethod = RECORD
 		mthNo, entryNo: INTEGER;
 	END;
-	
+
 	ArrayPtr = POINTER TO ARRAY OF LONGINT;
 
 	Type = POINTER TO TypeDesc;
 	Module* = POINTER TO ModuleDesc;
-	
+
 	ExportPtr = POINTER TO ExportDesc;
 	ExportDesc = RECORD
 		fp: LONGINT; adr: LONGINT;
@@ -117,7 +117,7 @@ TYPE
 		dsc: POINTER TO ARRAY OF ExportDesc;
 		Adr: LONGINT; done: BOOLEAN; type: Type;
 	END;
-	
+
 	DumpExportDesc = RECORD
 		fp: LONGINT; adr: LONGINT;
 		nofExp: LONGINT;
@@ -125,7 +125,7 @@ TYPE
 	END;
 
 	TerminationHandler = PROCEDURE;
-	
+
 	TypeDesc = RECORD
 		size, nofMethods, nofNewMethods, nofPtrs, tdAdr, tdEntry, tdSize, padSize, baseMod, baseEntry: LONGINT;
 		name: Name;
@@ -136,7 +136,7 @@ TYPE
 		initialized: BOOLEAN;
 		module: Module;
 	END;
-	
+
 	Bytes = POINTER TO ARRAY OF CHAR;
 
 	ModuleDesc* = RECORD
@@ -239,9 +239,9 @@ VAR
 	res: INTEGER;	(* last loader error *)
 
 	extension: ARRAY 8 OF CHAR;
-	
+
 	W: Texts.Writer;
-	
+
 	(* ---------------------------------------------------------- *)
 	(* String Handling Procedures *)
 
@@ -549,7 +549,7 @@ PROCEDURE LoadModule (VAR R: Files.Rider; m: Module; VAR base: LONGINT);
 			baseEntry: LONGINT
 		END;
 		*)
-	
+
 	PROCEDURE FixupCall (codeNow, codeImg, link, fixval: LONGINT);
 	VAR instr, nextlink, jmp: LONGINT;
 	BEGIN
@@ -566,7 +566,7 @@ PROCEDURE LoadModule (VAR R: Files.Rider; m: Module; VAR base: LONGINT);
 			link := nextlink
 		UNTIL link = 0FFFFH
 	END FixupCall;
-	
+
 	PROCEDURE FixupVar (codeNow, codeImg, link, fixval: LONGINT);
 	VAR nofFixups: INTEGER; i, val: LONGINT;
 	BEGIN
@@ -579,7 +579,7 @@ PROCEDURE LoadModule (VAR R: Files.Rider; m: Module; VAR base: LONGINT);
 			INC (i)
 		END
 	END FixupVar;
-	
+
 	PROCEDURE Fixup (m: Module; VAR link: LinkTab);
 	VAR i, val, offs: LONGINT;
 		modNo, nofFixups: INTEGER;
@@ -747,14 +747,14 @@ PROCEDURE LoadModule (VAR R: Files.Rider; m: Module; VAR base: LONGINT);
 			j := tab;
 			WHILE j > 0 DO LogCh (9X); DEC (j) END;
 		END Tab;
-	
+
 		PROCEDURE Err;
 		BEGIN
 			(*HALT (MAX(INTEGER));*)
 			IF res = 0 THEN LogStr (M.name); LogStr (" imports incompatible version of "); LogStr (mod.name); LogStr (": "); res := incompImport
 			ELSE LogCh (9X) END
 		END Err;
-		
+
 		PROCEDURE CheckScope (scope: ExportDesc; level: INTEGER);
 		VAR fp, link, i, tdadr: LONGINT; tadr: ExportPtr; tmpErr: BOOLEAN;
 		BEGIN tmpErr := (level = EUerrScope);
@@ -806,7 +806,7 @@ PROCEDURE LoadModule (VAR R: Files.Rider; m: Module; VAR base: LONGINT);
 			END;
 			IF TraceMore THEN DEC(tab); Tab; LogStr ("<- CheckScope"); LogLn END
 		END CheckScope;
-		
+
 	BEGIN Files.ReadString (R, name);
 		WHILE (name # "") & (res = 0) DO
 			mod := FindModule (name);
@@ -815,7 +815,7 @@ PROCEDURE LoadModule (VAR R: Files.Rider; m: Module; VAR base: LONGINT);
 			Files.ReadString (R, name)
 		END
 	END CheckUseBlock;
-	
+
 	PROCEDURE SetTDescAdr (M: Module; entry: LONGINT; t: Type);
 		VAR i: INTEGER;
 	BEGIN
@@ -827,7 +827,7 @@ PROCEDURE LoadModule (VAR R: Files.Rider; m: Module; VAR base: LONGINT);
 		IF i < M.export.nofExp THEN M.export.dsc[i].dsc[0].type := t;
 		END
 	END SetTDescAdr;
-	
+
 	PROCEDURE FindTDescAdr (M: Module; fp: LONGINT; VAR t: Type);
 	VAR i: INTEGER;
 	BEGIN
@@ -867,19 +867,19 @@ PROCEDURE LoadModule (VAR R: Files.Rider; m: Module; VAR base: LONGINT);
 			m.tdescs[i].initialized := TRUE;
 		END
 	END InitType;
-	
+
 	PROCEDURE InitTypes;
 	VAR i: LONGINT;
 	BEGIN i := 0;
 		WHILE i < m.nofTds DO InitType (i); INC (i) END
 	END InitTypes;
-	
+
 	PROCEDURE Expect (tag: CHAR);
 	VAR ch: CHAR;
 	BEGIN Files.Read (R, ch);
 		IF ch # tag THEN ErrMsg (corruptedObjFile, m.name) END
 	END Expect;
-	
+
 	PROCEDURE ReadHeader (VAR m: Module; VAR R: Files.Rider);
 		VAR dummy: INTEGER;
 	BEGIN
@@ -914,14 +914,14 @@ PROCEDURE LoadModule (VAR R: Files.Rider; m: Module; VAR base: LONGINT);
 			LogStr ("name  = "); LogStr (m.name); LogLn
 		END;
 	END ReadHeader;
-	
+
 	PROCEDURE ReadEntry (VAR m: Module; VAR R: Files.Rider);
 	BEGIN
 		IF m.nofEntries > 0 THEN NEW (m.entries, m.nofEntries) END;
 		Expect (082X); i := 0;
 		WHILE i < m.nofEntries DO ReadUnsigned (R, m.entries[i]); INC (i) END;
 	END ReadEntry;
-	
+
 	PROCEDURE FixEntry (VAR m: Module);
 	BEGIN
 		e := m.codeBase;
@@ -930,7 +930,7 @@ PROCEDURE LoadModule (VAR R: Files.Rider; m: Module; VAR base: LONGINT);
 			INC (i)
 		END;
 	END FixEntry;
-	
+
 	PROCEDURE ReadCmd (VAR m: Module; VAR R: Files.Rider);
 	BEGIN
 		IF m.nofCmds > 0 THEN NEW (m.cmds, m.nofCmds) END;
@@ -940,7 +940,7 @@ PROCEDURE LoadModule (VAR R: Files.Rider; m: Module; VAR base: LONGINT);
 			INC (i)
 		END;
 	END ReadCmd;
-	
+
 	PROCEDURE FixCmd (VAR m: Module);
 	BEGIN
 		e := m.codeBase;
@@ -949,7 +949,7 @@ PROCEDURE LoadModule (VAR R: Files.Rider; m: Module; VAR base: LONGINT);
 			INC (i)
 		END;
 	END FixCmd;
-	
+
 	PROCEDURE ReadPtr (VAR m: Module; VAR R: Files.Rider);
 	BEGIN
 		IF m.nofPtrs > 0 THEN NEW (m.ptrTab, m.nofPtrs) END;
@@ -960,7 +960,7 @@ PROCEDURE LoadModule (VAR R: Files.Rider; m: Module; VAR base: LONGINT);
 			INC (i)
 		END;
 	END ReadPtr;
-	
+
 	PROCEDURE FixPtr (VAR m: Module);
 	BEGIN
 		e := m.sb; i := 0; WHILE i < m.nofPtrs DO
@@ -968,7 +968,7 @@ PROCEDURE LoadModule (VAR R: Files.Rider; m: Module; VAR base: LONGINT);
 			INC (i)
 		END;
 	END FixPtr;
-	
+
 	PROCEDURE ReadImport (VAR m: Module;  VAR R: Files.Rider);
 	BEGIN
 		IF m.nofImps > 0 THEN NEW (m.imports, m.nofImps) END;
@@ -984,7 +984,7 @@ PROCEDURE LoadModule (VAR R: Files.Rider; m: Module; VAR base: LONGINT);
 			END
 		END;
 	END ReadImport;
-	
+
 	PROCEDURE ReadDataLink (VAR m: Module; VAR R: Files.Rider);
 	BEGIN
 		Expect (08DX); i := 0;
@@ -1005,7 +1005,7 @@ PROCEDURE LoadModule (VAR R: Files.Rider; m: Module; VAR base: LONGINT);
 		END;
 		(* data link doesn't change the image size, this are just fixup informations *)
 	END ReadDataLink;
-	
+
 	PROCEDURE FixDataLinks (VAR m: Module);
 		VAR modNo, nofFixups: INTEGER; codebase, i, val: LONGINT;
 	BEGIN
@@ -1022,7 +1022,7 @@ PROCEDURE LoadModule (VAR R: Files.Rider; m: Module; VAR base: LONGINT);
 			END
 		END;
 	END FixDataLinks;
-	
+
 	PROCEDURE ReadLink (VAR m: Module; VAR R: Files.Rider);
 	BEGIN
 		Expect (086X); i := 0;
@@ -1032,7 +1032,7 @@ PROCEDURE LoadModule (VAR R: Files.Rider; m: Module; VAR base: LONGINT);
 		END;
 		(* link doesn't change the image size, this are just fixup informations *)
 	END ReadLink;
-	
+
 	PROCEDURE ReadDataConst (VAR m: Module; VAR R: Files.Rider);
 	BEGIN
 		m.dataSize := Align (m.dataSize, 8);
@@ -1042,7 +1042,7 @@ PROCEDURE LoadModule (VAR R: Files.Rider; m: Module; VAR base: LONGINT);
 		Expect (087X); i := 0; t := m.dataSize;	(* insert after the data *)
 		WHILE i < m.conSize DO Files.Read (R, ch); m.data[t] := ch; INC (t); INC (i) END;
 	END ReadDataConst;
-	
+
 	PROCEDURE ReadExport (VAR m: Module; VAR R: Files.Rider);
 		VAR struct: ARRAY 1024 OF ExportPtr; nofStr: INTEGER;
 			i: LONGINT;
@@ -1052,7 +1052,7 @@ PROCEDURE LoadModule (VAR R: Files.Rider; m: Module; VAR base: LONGINT);
 			j := i;
 			WHILE j > 0 DO LogCh (9X); DEC (j) END;
 		END Tab;
-		
+
 		PROCEDURE LoadScope (VAR scope: ExportDesc; level: INTEGER; adr: LONGINT);
 			VAR no, no2: INTEGER; fp, off: LONGINT;
 		BEGIN
@@ -1088,25 +1088,25 @@ PROCEDURE LoadModule (VAR R: Files.Rider; m: Module; VAR base: LONGINT);
 				Tab; DEC (i); LogStr ("<- End of scope "); LogLn
 			END
 		END LoadScope;
-		
+
 	BEGIN
 		i := 0;
 		Expect (088X);
 		nofStr := 0; LoadScope (m.export, EUobjScope, 0);
 	END ReadExport;
-		
+
 	PROCEDURE ReadCode (VAR m: Module; VAR R: Files.Rider);
 	BEGIN
 		IF m.codeSize > 0 THEN NEW (m.code, m.codeSize) END;
 		Expect (089X); Files.ReadBytes (R, m.code^, m.codeSize);
 	END ReadCode;
-	
+
 	PROCEDURE ReadUse (VAR m: Module; VAR R: Files.Rider);
 	BEGIN
 		Expect (08AX);
 		CheckUseBlock (R, m);
 	END ReadUse;
-	
+
 	PROCEDURE ReadType (VAR m: Module; VAR R: Files.Rider);
 		VAR dummy: INTEGER; i, j: LONGINT;
 	BEGIN
@@ -1143,7 +1143,7 @@ PROCEDURE LoadModule (VAR R: Files.Rider; m: Module; VAR base: LONGINT);
 			IF m.tdescs[i].nofPtrs > 0 THEN NEW (m.tdescs[i].ptrOffset, m.tdescs[i].nofPtrs) END;
 			j := 0;
 			WHILE j < m.tdescs[i].nofPtrs DO Files.ReadLInt (R, m.tdescs[i].ptrOffset[j]); INC (j) END;
-			
+
 			(* td size *)
 			ASSERT ((m.typeTableAdr+m.typeTableSize+4) MOD Boundary = 0);	(* type must aligned *)
 			m.tdescs[i].tdSize := 13 (* fields tdsize..mdesc *) + m.tdescs[i].nofMethods + ExtTabWordSize + 1 (* tag *);
@@ -1151,14 +1151,14 @@ PROCEDURE LoadModule (VAR R: Files.Rider; m: Module; VAR base: LONGINT);
 			m.tdescs[i].tdAdr := m.tdescs[i].tdSize*4 + m.typeTableAdr+m.typeTableSize+4;	(* <-- skip the td *)
 			ASSERT (m.tdescs[i].tdAdr MOD 16 = 8);	(* type alignment *)
 			m.tdescs[i].tdSize := (m.tdescs[i].tdSize + 1 (*recsize*) + m.tdescs[i].nofPtrs + 1 (*sentinel*)) * 4;
-			
+
 			(* write the td address in the constants section *)
 			AddAbsReloc(m.sb+m.tdescs[i].tdEntry, m.tdescs[i].tdAdr);
 			S.PUT (S.ADR (m.data[0])+m.dataSize+m.tdescs[i].tdEntry, m.tdescs[i].tdAdr);
-			
+
 			m.tdescs[i].padSize := (-m.tdescs[i].tdSize-4(*tag*)) MOD Boundary;
 			INC(m.typeTableSize, 4(*tag*) + m.tdescs[i].tdSize + m.tdescs[i].padSize);
-			
+
 			ASSERT (m.typeTableSize MOD 32 = 0);
 			IF (SysFix[modDescSF].module = m.name) & (SysFix[modDescSF].command = m.tdescs[i].name) THEN
 				SysFix[modDescSF].adr := m.tdescs[i].tdAdr
@@ -1169,7 +1169,7 @@ PROCEDURE LoadModule (VAR R: Files.Rider; m: Module; VAR base: LONGINT);
 
 			INC (i)
 		END;
-		
+
 		IF res # done THEN RETURN END;
 	END ReadType;
 
@@ -1198,7 +1198,7 @@ BEGIN	(* LoadModule *)
 	m.init := FALSE; m.refcnt := 0; m.term := NIL;
 	(* Skip sym file *)
 	Files.ReadNum (R, symSize); Files.Set (R, Files.Base (R), Files.Pos (R)+symSize);
-		
+
 	ReadHeader (m, R);
 	ReadEntry (m, R);
 	ReadCmd (m, R);
@@ -1209,7 +1209,7 @@ BEGIN	(* LoadModule *)
 	ReadDataConst (m, R);
 	ReadExport (m, R);
 	ReadCode (m, R);
-	
+
 	(* compute sizes *)
 
 	m.base := base; m.imageSize := 28; (* hidden td *)
@@ -1241,29 +1241,29 @@ BEGIN	(* LoadModule *)
 		Dump (m.base+m.imageSize+ArrayDescSize, "data");
 		Dump (m.sb, "const");
 	END;
-	
+
 	ASSERT (m.expAdr MOD 32 = 28);
 	m.expPadding := m.expAdr - m.base - m.imageSize; m.expSize := 0;
 	INC (m.imageSize, m.expPadding);
 	AssignExportSizes (m.export, m);
 	INC (m.imageSize, m.expSize);
-	
+
 	ReadUse (m, R);		(* <- size informations used here *)
-	
+
 	(* tds fixed in the ReadType section, because they don't belong to the big block here !! *)
-	
+
 	(* prepare for types *)
 	(* already aligned on the 32-b boundary by the AssignExportSizes procedure *)
 	m.typeTableAdr := m.base + m.imageSize;
 	m.typeTableSize := 0;
 	ASSERT ((m.imageSize+m.base+4) MOD Boundary = 0);
 	ReadType (m, R);
-	
+
 	INC (m.imageSize, m.typeTableSize);
 	ASSERT ((m.imageSize+m.base+4) MOD Boundary = 0);
-	
+
 	ReadRef (m, R);
-	
+
 	ASSERT ((m.imageSize+m.base+4) MOD Boundary = 0);
 	m.modDescAdr := m.imageSize + m.base + 4;
 	INC (m.imageSize, moduleDescSize);
@@ -1423,7 +1423,7 @@ END InsertPad;
 (* ---------------------------------------------------------- *)
 PROCEDURE DumpTypes (VAR rider: Files.Rider; m: Module; VAR next: LONGINT);
 	VAR t: Type; i, j, tag: LONGINT;
-	
+
 		PROCEDURE GetMethodAddress (n: LONGINT; t: Type): LONGINT;
 			VAR	i: LONGINT;
 		BEGIN
@@ -1434,14 +1434,14 @@ PROCEDURE DumpTypes (VAR rider: Files.Rider; m: Module; VAR next: LONGINT);
 			ELSE RETURN t.module.entries[t.newMethods[i].entryNo]
 			END
 		END GetMethodAddress;
-		
+
 		PROCEDURE WriteTags (t: Type);
 		BEGIN
 			AddReloc(Files.Pos(rider), t.tdAdr);
 			Files.WriteLInt (rider, t.tdAdr);
 			IF t.extlev # 0 THEN WriteTags (t.baseType) END
 		END WriteTags;
-		
+
 BEGIN
 	FOR i := 0 TO m.nofTds-1 DO
 		ASSERT (next MOD Boundary = 28);	(* <- already points to the next one *)
@@ -1459,28 +1459,28 @@ BEGIN
 		Files.WriteLInt (rider, m.modDescAdr (*+ 4*));
 		INC (next, 13*4 + 4 (*tag*));	(* tdsize .. mdesc *)
 		INC (next, t.nofMethods*4 + 16*4(*tags*));
-		
+
 		(* padding for methods *)
 		IF (-next-12) MOD 16 # (-next+4) MOD 16 THEN HALT (99) END;
 		j := (-next - 12) MOD 16; INC (next, j);			(* next should point to the tag *)
 		ASSERT (next MOD 16 = 4);
-		
+
 		j := j DIV 4;
 		WHILE j > 0 DO Files.WriteLInt (rider, 0); DEC (j) END;
-		
+
 		(* write methods *)
 		j := t.nofMethods;
 		WHILE j > 0 DO
 			DEC (j);
 			Files.WriteLInt (rider, GetMethodAddress(j, t));
 		END;
-		
+
 		(* padding for tags *)
 		FOR j := t.extlev+1 TO 15 DO Files.WriteLInt (rider, 0) END;
-		
+
 		(* tags *)
 		WriteTags (t);
-		
+
 		ASSERT (next MOD 16 = 4);
 		ASSERT (Files.Length(Files.Base(rider)) + imageBase = next);
 		AddReloc(Files.Pos(rider), tag);
@@ -1489,7 +1489,7 @@ BEGIN
 		ASSERT (next MOD 16 = 8);
 		ASSERT (Files.Length(Files.Base(rider)) + imageBase = next);
 		ASSERT (next = t.tdAdr);
-		
+
 		Files.WriteLInt (rider, t.size);
 		j := 0;
 		WHILE j < t.nofPtrs DO Files.WriteLInt (rider, t.ptrOffset[j]); INC (j) END;
@@ -1506,7 +1506,7 @@ BEGIN
 	ASSERT (next MOD 32 = 0);
 	num := exp.nofExp; (*arrHdr.len := num;*) exp.done := FALSE;
 	IF (num = 0) OR ~exp.dsc[0].done THEN RETURN END;	(* don't traverse it *)
-	
+
 	(* write the array *)
 	ASSERT (exp.dsc[0].Adr = next);
 	AddReloc(Files.Pos(rider), tag);
@@ -1667,7 +1667,7 @@ BEGIN
 		ASSERT (m.sb = next + ArrayDescSize + m.dataSize);
 		Files.WriteBytes (rider, m.data^, m.dataSize + m.conSize);
 		InsertPad (rider, next, TagSize+ArrayDescSize + m.dataSize + m.conSize, 16);
-		
+
 		(* Code *)
 		AddReloc(Files.Pos(rider), tag);
 		Files.WriteLInt (rider, tag);	(* <- next already updated *)
@@ -1682,7 +1682,7 @@ BEGIN
 		ASSERT (Files.Length(Files.Base(rider)) + imageBase = m.codeBase);
 		Files.WriteBytes (rider, m.code^, num);
 		InsertPad (rider, next, TagSize+ArrayDescSize+num, 16);
-		
+
 		(* TDescs *)
 		AddReloc(Files.Pos(rider), tag);
 		Files.WriteLInt (rider, tag);	(* <- next already updated *)
@@ -1712,7 +1712,7 @@ BEGIN
 		ASSERT (Files.Length(Files.Base(rider)) + imageBase = next + ArrayDescSize);
 		IF num > 0 THEN Files.WriteBytes (rider, m.refs^, num) END;
 		InsertPad (rider, next, TagSize+ArrayDescSize+num, 16);
-		
+
 		(* import *)
 		AddReloc(Files.Pos(rider), tag);
 		Files.WriteLInt (rider, tag);
@@ -1747,14 +1747,14 @@ BEGIN
 		(*InsertPad (rider, next, 20+num*4, 16);*)
 		INC (next, TagSize+ArrayDescSize + num*4);
 
-		
+
 		(* export *)
 		(* align to word boundary - 4 *)
 		Dump (next, "padding");
 		Dump (Files.Length(Files.Base(rider)) + imageBase, "effective");
 		Files.WriteBytes (rider, padding, m.expPadding+4);		(* <- +4 compensate the tag *)
 		INC (next, m.expPadding+4);
-		
+
 		ASSERT (Files.Length(Files.Base(rider)) + imageBase = next - 4);
 		ASSERT (next MOD 32 = 0);
 		Dump (Files.Length(Files.Base(rider)) + imageBase, "effective");
@@ -1764,7 +1764,7 @@ BEGIN
 		img.export.fp := m.export.fp; img.export.adr := m.export.adr;
 		img.export.nofExp := m.export.nofExp;
 		IF img.export.nofExp = 0 THEN img.export.dsc := 0 ELSE img.export.dsc := m.export.dsc[0].Adr END;
-		
+
 		(* align to word boundary - 4 *)
 		(* tdescs *)
 		Dump (next, "tds");
@@ -1775,7 +1775,7 @@ BEGIN
 		ASSERT (m.typeTableAdr = next);
 		ASSERT (Files.Length(Files.Base(rider)) + imageBase = next );
 		DumpTypes (rider, m, next);
-		
+
 		(* Module Descr *)
 		Dump (next, "mdesc");
 		Dump (m.modDescAdr, "desc Adr");
