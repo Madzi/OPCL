@@ -20,7 +20,7 @@ Test the work of compiler and linker using sample programs:
 
 a) compile and link the compiler, linker and sample programs
 
-CompileAndLink.bat
++CompileAndLink.bat
 
 b) merge Samples\HelloCon.Reg into your computer registry
 
@@ -46,6 +46,10 @@ exception caused by issuing HALT command within linker code.
 
 History
 
+10 Feb 2012
+- SourceForge hosting: https://sourceforge.net/projects/opcl
+- Update compiler and linker to ETH PlugIn Oberon Release 2.5 (7.2.2009).
+
 23 Jan 2012, v0.3
 - Show line and column in errors messages (postpone errors also supported).
   Now you can use Syn Text Editor - http://sourceforge.net/projects/syn/
@@ -61,7 +65,7 @@ History
 
 03 Dec 2010, v0.2
 - Add full sources, made compiler and linker self-compilable
-- Add Makefiles for GNU Make and CompileAndLink.bat files
+- Add Makefiles for GNU Make and +CompileAndLink.bat files
 - Add Linker '/d' option
 - Add HelloDLL.* sample projects
 - EOL converted to Windows CRLF, removed binary file headers
