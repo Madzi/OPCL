@@ -1,6 +1,6 @@
 (* Copyright (c) 1994 - 2000 Emil J. Zeller *)
 
-MODULE FileDir; (** non-portable / source: Win32.FileDir.Mod *)	(* ejz  *)
+MODULE FileDir; (** non-portable / source: Win32.FileDir.Mod *)	(* ejz *)
 	IMPORT SYSTEM, Kernel32, Kernel, Registry;
 
 (** The FileDir module implements the naming of files in directories. *)
@@ -27,7 +27,7 @@ MODULE FileDir; (** non-portable / source: Win32.FileDir.Mod *)	(* ejz  *)
 		PathChar-: CHAR; (** directory separator *)
 		moduleCS: Kernel32.CriticalSection;
 
- (** Replace all occurences of character from in name by to. *)
+(** Replace all occurences of character from in name by to. *)
 	PROCEDURE ConvertChar*(VAR name: ARRAY OF CHAR; from, to: CHAR);
 		VAR i: LONGINT;
 	BEGIN
@@ -38,8 +38,8 @@ MODULE FileDir; (** non-portable / source: Win32.FileDir.Mod *)	(* ejz  *)
 		END
 	END ConvertChar;
 
- (** Search the (relative) filename name in the current directory. If it could not be found all directories in the search path
- 	are searched for name. fileName returns the full (absolute) name for the file found. *)
+(** Search the (relative) filename name in the current directory. If it could not be found all directories in the search path
+are searched for name. fileName returns the full (absolute) name for the file found. *)
 	PROCEDURE FindFile*(name: ARRAY OF CHAR; VAR fullname: ARRAY OF CHAR; usepath: BOOLEAN): BOOLEAN;
 		VAR ret: LONGINT; fileName: Kernel32.LPSTR;
 	BEGIN
@@ -109,7 +109,7 @@ MODULE FileDir; (** non-portable / source: Win32.FileDir.Mod *)	(* ejz  *)
 		RETURN (a[i] = 0X) & (b[j] = 0X)
 	END SameName;
 
- (** Compute the relative filename (relative to the working directory). *)
+(** Compute the relative filename (relative to the working directory). *)
 	PROCEDURE RelFileName*(fileName: ARRAY OF CHAR; VAR relFileName: ARRAY OF CHAR);
 		VAR
 			i, j, k, p: LONGINT;
@@ -448,3 +448,9 @@ must be calculated. When
 BEGIN
 	Init()
 END FileDir.
+
+(** Remarks:
+
+1. Newly created files are always written in the working directory when no absolute filename is specified. Opening a file searches in the current directory, followed by each directory in the path in return.
+
+2. The search path for files is specified by the Directories key in the System section of the Registry. *)

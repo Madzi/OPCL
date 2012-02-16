@@ -1,6 +1,6 @@
 (* Copyright (c) 1994 - 2000 Emil J. Zeller *)
 
-MODULE Kernel32; (** non-portable / source: Win32.Kernel32.Mod *)	(* ejz  *)
+MODULE Kernel32; (** non-portable / source: Win32.Kernel32.Mod *)	(* ejz *)
 	IMPORT SYSTEM;
 
 (** This module defines all the Win32 Kernel32 APIs used by Oberon.

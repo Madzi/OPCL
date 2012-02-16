@@ -1,6 +1,6 @@
 (* Copyright (c) 1994 - 2000 Emil J. Zeller *)
 
-MODULE Files; (** portable, except where noted / source: Win32.Files.Mod *)	(* ejz  *)
+MODULE Files; (** portable, except where noted / source: Win32.Files.Mod *)	(* ejz *)
 	IMPORT SYSTEM, Kernel32, Kernel, FileDir;
 
 (** The Files module provided access to the file system of the host operating system by simulating an Oberon-like file system. *)
@@ -684,3 +684,15 @@ IF pos > F.len THEN pos := F.len ELSIF pos < 0 THEN pos := 0 END;
 BEGIN
 	Init()
 END Files.
+
+(** Remarks:
+
+1. Oberon uses the little-endian byte ordering for exchanging files between different Oberon platforms.
+
+2. Files are separate entities from directory entries. Files may be anonymous by having no name and not being registered in a directory. Files only become visible to other clients of the Files module by explicitly passing a File descriptor or by registering a file and then opening it from the other client. Deleting a file of which a file descriptor is still available, results in the file becoming anonymous. The deleted file may be re-registered at any time.
+
+3. Files and their access mechanism (Riders) are separated. A file might have more than one rider operating on it at different offsets in the file.
+
+4. The garbage collector will automatically close files when they are not required any more. File buffers will be discarded without flushing them to disk. Use the Close procedure to update modified files on disk.
+
+5. Relative and absolute filenames written in the directory syntax of the host operating system are used. By convention, Oberon filenames consists of the letters A..Z, a..z, 0..9, and ".". The directory separator is typically / or :. Oberon filenames are case sensitive (not true for this implementation!!!). *)
