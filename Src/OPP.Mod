@@ -2360,7 +2360,7 @@ OPM.LogWStr("  failed");*)
 	END Module;
 
 BEGIN
-	NEW(ObjCheck, 128);
+	NEW(ObjCheck, 256);
 	SignOnMessage := "Oberon Parser (Active & X Extensions) / prk";
 	OPS.name := "INC"; OPT.Find(inc)
 END OPP.
