@@ -127,3 +127,10 @@ IMPORTS
 	MoveWindow.Gdi32CreateSolidBrush = GDI32.CreateSolidBrush
 ICONS
 	Oberon = Oberon.ico
+VERSION
+	CompanyName = "Institute for Computer Systems of ETH Zurich",
+	FileDescription = "ETH PlugIn Oberon Sample",
+	FileVersion = "Release 2.4",
+	LegalCopyright = "(c) 2000 Team of the Institute for Computer Systems of ETH Zurich",
+	LegalTrademarks = '"Oberon" and "Gadgets" are trademarks of Eidgenussische Technische Hochschule, Zurich (ETHZ)',
+	OriginalFilename = "MoveWindow.EXE"
