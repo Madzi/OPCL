@@ -116,7 +116,7 @@ MODULE OPM;	(** non-portable *)
 		trace* = 22;	(** trace procedure usage *)
 		aos* = 23;	(** aos, different objfile *)
 
-		DefOpt* = {inxchk, typchk, ptrinit, fullstackinit, assert};
+		DefOpt* = {inxchk, typchk, ptrinit, fullstackinit, assert, newsf};
 
 	TYPE
 		TextPos* = RECORD

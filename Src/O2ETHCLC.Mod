@@ -69,7 +69,7 @@ MODULE O2ETHCLC;
 		Console.WriteString("2 - compile Oberon-2");	Console.WriteLn;
 		Console.WriteString("1 - compile Oberon-1");	Console.WriteLn;
 		Console.WriteLn;
-		Console.WriteString("Default options are FneSwPZAXTv3");
+		Console.WriteString("Default options are FNeSwPZAXTv3");
 	END AboutOptions;
 
 	(***********************************)
