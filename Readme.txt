@@ -1,41 +1,54 @@
-Command line version of the ETH Oberon Plugin for Windows 95/98/NT/2000
-release 2.4 Portable compiler and linker.
+OPCL (Oberon Portable Compiler and Linker)
+==========================================
+
+OPCL is a command-line version of the Enhanced OP2 Compiler for i386 target
+and Linker for Microsoft Windows Platform (32 bit). OPCL is based on
+source code of ETH Oberon PlugIn for Windows 95/98/NT/2000, Release 2.5.
+
+Enhanced OP2 compiler is based on OP2 and extends it by supporting dialects
+Oberon, Oberon-2, Oberon-X, Active Oberon (subset) and Embedded Assembler.
+
+Front-end authors: Regis Crelier, Patrik Reali (additions).
+
+Back-end authors:
+i386:  Patrik Reali, Institut fuer Computersysteme ETH Zuerich,
+SPARC: G. Feldmann (additions).
 
 Compiler, linker and kernel by Team of the Institute for Computer Systems
 of ETH Zuerich. Copyright 2000 ETH Zuerich Institut fuer Computersysteme,
 ETH Zentrum, CH-8092 Zuerich. Refer to the "General ETH Oberon System
 Source License" contract available at http://www.oberon.ethz.ch/
 
-Command line wrapper and 'readme' by Eugene Shcherbatyuk.
+Command-line wrapper and 'readme' by Eugene Shcherbatyuk.
 Current maintainers:
-	Alexander Iljin <ajsoft [a] yandex . ru>
-	Oleg N. Cher <allot [a] bk . ru>
+	Alexander Iljin (ajsoft [at] yandex [dot] ru)
+	Oleg N. Cher (allot [at] bk [dot] ru)
 Contributors:
-	Kemet (elbrusstudio —Œ¡¿ ¿ mail “Œ◊ ¿ ru)
+	Kemet (elbrusstudio [at] mail [dot] ru)
 
 Notes on usage
+==============
 
-Merge Src\o2ethclc.Reg into your computer registry.
+Merge Bin\O2ETHCLC.Reg into your computer registry.
 Test the work of compiler and linker using sample programs:
 
 a) compile and link the compiler, linker and sample programs
 
 +CompileAndLink.bat
 
-b) merge Samples\HelloCon.Reg into your computer registry
-
-c) run programs
+b) run programs
 
 Samples\HelloCon.exe
 Samples\HelloGUI.exe
 Samples\HelloDLL.exe
 
-d) run compiler and linker with /? switch to read brief help information.
+c) run compiler and linker with /? switch to read brief help information.
 
 If you have GNU Make and tr installed, then you can simply run 'make' for
 compilation and linking.
 
 Known bugs and limitations
+==========================
 
 HALT and ASSERT statements are not handled properly. They cause
 application errors. You can see that when linker will not find
@@ -45,6 +58,7 @@ application error. That is not an error indeed. That is unhandled
 exception caused by issuing HALT command within linker code.
 
 History
+=======
 
 10 Feb 2012
 - SourceForge hosting: https://sourceforge.net/projects/opcl
@@ -75,3 +89,41 @@ History
 
 ?? Nov 2002, v0.1
 - Initial release by Eugene Shcherbatyuk.
+
+
+Friendly projects
+=================
+
+ETH PlugIn Oberon for Windows 9x/ME/NT/2000/XP
+----------------------------------------------
+Oberon is both the name of a programming language and operating system 
+developed at ETH Zuerich. This particular distribution contains an 
+implementation of ETH PlugIn Oberon Release 2.5 for Windows 9x/ME/NT/2000/XP.
+Copyright (C) 1990-2004 Institut fuer Computersysteme ETH Zuerich.
+
+ftp://ftp.ethoberon.ethz.ch/ETHOberon/Win95NT/PlugIn
+https://github.com/AlexIljin/WinOberon (latest version 2.6 Prerelease)
+
+Component Pascal compiler
+-------------------------
+Minimalistic cross-platform compiler for Component Pascal language,
+subset of BlackBox Component Builder 1.6 RC5 (forked subsystem Dev),
+capable to produce stand-alone software from command-line. 
+
+http://cp-dev.sourceforge.net
+
+Ofront (Oberon2 to C translator)
+--------------------------------
+Ofront is a tool that translates Oberon-2 programs into semantically
+equivalent C programs. Ofront for Windows is primarily intended as
+a cross development tool for embedded systems, Unix platforms and the like.
+Instead Ofront allows to reuse libraries written in C or other foreign
+languages with very little effort and without any run-time overhead.
+
+Ofront for Windows is a version of Ofront for the Microsoft Windows Platform.
+It runs as a subsystem of BlackBox Component Builder from Oberon microsystems.
+
+Ofront for Linux is a version of Ofront for i386 based Linux systems.
+It has been tested under Debian/etch/testing with Kernel 2.6.19.
+
+http://www.software-templ.com/shareware.html
