@@ -1,0 +1,378 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title> Frequently Asked Questions on the Oberon Language</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+<body BGCOLOR="#FFFFFF">
+<center><h1>Frequently Asked Questions on the Oberon Language</h1></center>
+<p>
+<strong>Note:</strong> Questions not specifically related with the Oberon language or the compiler are dealt with in the <a href="newfaq.html">FAQ on the ETH Oberon system</a>.
+<p>
+<strong>General</strong> 
+<ol> 
+<li><a href="#advantage">What advantage do you see in using Oberon rather than other widespread programming languages?</a></li> 
+</ol> 
+<strong>Style</strong> 
+<ol> 
+<li><a href="#etym">What is the etymology of Reader, Scanner and Writer?</a></li> 
+<li><a href="#name">What naming conventions can be recommended?</a></li> 
+</ol> 
+<strong>Types</strong> 
+<ol> 
+<li><a href="#size">What is the size of the record?</a></li> 
+<li><a href="#type">Why can't I assign a variable to another one of the same type?</a></li> 
+<li><a href="#const">How does the compiler treat whole number constants?</a></li> 
+</ol> 
+<strong>Programming hints</strong> 
+<ol> 
+<li><a href="#iden">What is the longest identifier that can be used in Oberon sources?</a></li> 
+<li><a href="#16bit">How can I handle 16-bit unsigned numbers in Oberon?</a></li> 
+<li><a href="#cast">How do I cast a variable?</a></li> 
+<li><a href="#castfast">How do I cast REAL variables to INTEGER very fast? ( quasi-realtime)</a></li> 
+<li><a href="#CORDIC">Is there a way to improve the speed of computation for a realtime application?</a></li> 
+<li><a href="#uniform">How do I spread random numbers as uniformly as possible?</a></li> 
+<li><a href="#bitwise">Are there any bitwise operators available in Oberon?</a></li> 
+<li><a href="#direct">How do I write a constant value directly to an memory?</a></li> 
+<li><a href="#varinit">Variable initialization can be at fault</a></li> 
+<li><a href="#identify">Is there a portable way to identify the caller of a procedure?</a></li> 
+</ol> 
+<strong>Compiler</strong> 
+<ol> 
+<li><a href="#locate">How do I locate an error in the source text?</a></li> 
+<li><a href="#zoption">Why does the \z option cause the ceation of a larger code?</a></li> 
+<li><a href="#testset">Is there a test set for Oberon compilers?</a></li> 
+</ol> 
+<strong>Built-in assembler</strong> 
+<ol> 
+<li><a href="#assembler">Where do I find assembler documentation?</a></li> 
+<li><a href="#order">What is the order of fields in a record?</a></li> 
+<li><a href="#cast">The compiler's behavior is unusual when casting anything to BOOLEAN.</a></li> 
+<li><a href="#BYTE">What is the correct syntax for operating on SYSTEM.BYTE?</a></li> 
+<li><a href="#call">How to call a procedure from an assembler routine?</a></li> 
+<li><a href="#fastcast">How do I cast a large number of variables very fast?</a></li> 
+<li><a href="#in-line">How to use in-line procedures</a></li> 
+</ol>
+<h2>General</h2>
+<ol> 
+<li><strong><a name="advantage">What</a> advantage do you see in using Oberon rather than other widespread programming languages? 
+<br>A:</strong> The following was reported by Antonio Cisternino <cisterni at di.unipi.it>:
+<p>
+Reading the old book "Godel, Echer, Bach: an eternal golden braid", Hofstadter, 1980, I have found the following in chapter X:
+<p>
+"Programming in different languages is like composing pieces in different keys, particularly if you work at the keyboard. If you have learned or written pieces in many keys, each key will have its own special emotional aura. Also, certain kinds of figurations "lie in the hand" in one key but are awkward in another. So you are channeled by your choice of key. In some ways, even enharmonic keys, such as C-sharp and D-flat, are quite distinct in feeling. This shows how a notational system can play a significant role in shaping the final product."
+<p>
+I think it's a nice way to say that multiple languages may help solving complex problems if each language  is used to exploit its strength. It is related with CLR and the music context is appropriate to the name C#.
+<p>
+</ol>
+<h2>Style</h2>
+<ol> 
+<li><strong><a name="etym">What</a> is the etymology of Reader, Scanner and Writer? The "er" suffix suggests they are procedures but in fact they are records. 
+<br>A:</strong> Reader, Scanner and Writer are nouns, not verbs so, extrapolating from the naming guidelines in "Programming in Oberon" by Reiser and Wirth, they are appropriate for type names.
+<p>
+<li><strong><a name="name">What</a> naming conventions can be recommended? 
+<br>A:</strong> Extracted from "Object-Oriented Programming in Oberon-2" by Hanspeter M&ouml;ssenb&ouml;ck:
+<pre>Name of     Begin with         1st letter   Examples 
+------------------------------------------------------------- 
+Constants   Noun or Adjective  Small        version, wordSize 
+Variables   Noun or Adjective  Small        full 
+Types       Noun               Capital      File, TextFrame 
+Procedures  Verb               Capital      WriteString 
+Functions   Noun or            Capital      Position 
+            Adjective          Capital      Empty, Equal 
+Module      Noun               Capital      Files, TextFrames
+</pre>
+When declaring a pointer type X, the record pointed to should be called XDesc, as in this example: 
+ 
+TYPE 
+    List = POINTER TO ListDesc; 
+    ListDesc = RECORD 
+<br>        ... 
+    END;
+<p>
+</ol>
+<h2>Types</h2>
+<ol> 
+<li><strong><a name="size">The</a> following two definitions yield two apparently different sizes:</strong>
+<pre>    TYPE RecA = RECORD 
+        Elements : ARRAY 25 OF SYSTEM.BYTE; 
+        END; 
+<br> 
+    TYPE RecB = ARRAY 25 OF SYSTEM.BYTE;
+</pre>
+<strong>When I look at the SIZE of RecA, I see 28, when I look at the SIZE of RecB, I see 25 (!). Thus, if I form a packet to ship with UDP, and I depend on the structure set up using RecA to have a size of 25, I am in trouble. What is being done here? This will come up again as I take a data file built using, say, Delphi or M2, and attempt to read in the same file using Oberon.<br> 
+A1:</strong> The size of a record is always padded at the end to a multiple of 4 bytes.
+<p>
+<strong>A2:</strong> The most portable way to read files is byte by byte, converting the fields explicitly using *, DIV and MOD. Only if you need high performance with large files, should you use memory-mapped records.
+<p>
+The Files module provides procedures for reading little-endian ordered values (ReadInt, ReadLInt).
+<p>
+<li><strong><a name="type">I</a> cannot assign two variables that have the same type (err 113). Why? 
+<br>A:</strong> Two variables are compatible only if they have the same type, not the same type structure.
+<p>
+Take this example of two similar but different types:
+<pre>     TYPE StudentGroup = RECORD  count: LONGINT  END; 
+          PotatoBag = RECORD  count: LONGINT  END; 
+<br> 
+     VAR  s: StudentGroup; 
+          p: PotatoBag; 
+<br> 
+          ... 
+          s := p;&nbsp; &nbsp; &nbsp;(* err 113 here! *)
+</pre>
+Just because they have the same structure, doesn't mean that they are compatible. Would you compare students and potatos? The problem is however less obvious when anonymous types are involved, declared on the fly. In this case types are always incompatible:
+<pre>     VAR  a: RECORD  count: LONGINT  END; 
+          b: RECORD  count: LONGINT  END;
+</pre>
+Although these two types look the same, they are incompatible because they have different declarations. To make <i>a</i> and <i>b</i> compatible you must declare the types either with:
+<pre>     VAR  a, b: RECORD  count: LONGINT  END;
+</pre>
+or with:
+<pre>     TYPE MyType = RECORD  count: LONGINT  END; 
+<br> 
+     VAR  a: MyType; b: MyType;
+</pre>
+In this common case of a procedure paramenter:
+<pre>     PROCEDURE P(a: ARRAY 32 OF CHAR);
+</pre>
+no type will ever have the same declaration as <i>a</i>, thus no variable will every be compatible to <i>a</i>!
+<p>
+There is only one exception to this rule: open arrays. In this case, the base type of both variables must be compatible. This allows to use anonymous open arrays in procedure parameters.
+<p>
+<li><strong><a name="const">It</a> appears that the compiler treats whole number constants as type INTEGER. I do not know how it treats a large whole value, say 40000. I suspect it treats it as a LONGINT. It does not appear to treat values like 125 as a byte. 
+<br>A:</strong> An integer constant has the smallest integer type that will accomodate it. So -128, 0 and 127 would be SHORTINT, -32768, 128 and 32767 INTEGER, and -32769 and 32768 LONGINT.
+<p>
+In low-level code, to be sure of the size, use SYSTEM.VAL to cast it. SYSTEM.VAL should be used in the 2nd argument of the SYSTEM procedures GET/PUT, PORTIN/PORTOUT, GETREG/PUTREG. Alternatively, you could also write:
+<pre>    SYSTEM.PUT(Adr, CHR(255)) 
+    SYSTEM.PUT(Adr, 0FFX) 
+    SYSTEM.PUT(Adr, SYSTEM.VAL(INTEGER, myconst))
+</pre>
+</ol>
+<h2>Programming hints</h2>
+<ol> 
+<li><strong><a name="iden">What</a> is the longest identifier that can be used in Oberon sources? How many characters of the identifier are considered unique? 
+<br>A:</strong> 32. 32.
+<p>
+<li><strong><a name="16bit">How</a> can I handle 16-bit unsigned numbers in Oberon? 
+<br>A:</strong> Convert the number to a 32-bit LONGINT value. For example:
+<pre>     VAR  x: LONGINT; y: INTEGER; 
+<br> 
+          x := LONG(y) MOD 10000H
+</pre>
+The MOD is compiled efficiently as a logical AND operation, because the divisor is a constant power of 2.
+<p>
+<li><strong><a name="cast">How</a> do I cast a variable? I am looking for an equivalent of p = (Process) c; in C. 
+<br>A:</strong> Use a type guard - cfr. Chapter 11.2 in Programming in Oberon. Casting with SYSTEM.VAL is not a good idea, because it can break the garbage collector.
+<p>
+<li><strong><a name="castfast">How</a> do I cast REAL variables to INTEGER very fast? 
+<br>A:</strong> Use the built-in assembler as <a href="#fastcast">explained</a>.
+<p>
+<li><strong><a name="CORDIC">Is</a> there a way to improve the speed of computation for a realtime application? 
+<br>A:</strong> A collection of <a href="software/CORDIC.html">CORDIC algorithms</a> is under development.
+<p>
+<li><strong><a name="uniform">How</a> do I spread random numbers as uniformly as possible? I need to fill a 13*13*13 matrix with random numbers. 
+<br>A:</strong> RandomNumbers.Uniform() is a first approximation. Unless you are just playing games, you should avoid it. Random numbers are full of tricks. If you like reading, have a look at the new edition of Knuth or the papers of George Marsaglia. For a general reference, see the <a href="http://random.mat.sbg.ac.at/links/rando.html">World-Wide Web Virtual Library</a>.
+<p>
+Some common generators are found in a <a href="ftp://ftp.ethoberon.ethz.ch/ETHOberon/Contrib/vy/">contribution</a>.
+<p>
+<li><strong><a name="bitwise">Are</a> there any bitwise operators available in Oberon? 
+<br>A:</strong> Use the SET type and its operators.  Here are the operators and their bitwise equivalents.
+<pre>    +     union                 bitwise or
+*     intersection          bitwise and 
+    -     difference 
+    /     symmetric difference  bitwise xor 
+    IN    element test          bit test 
+    INCL  element insert        bit set 
+    EXCL  element remove        bit clear
+</pre>
+You can use SYSTEM.VAL(SET, intexpr) to convert an expression to a set and SYSTEM.VAL(LONGINT, setexpr) to convert an expression from a set.
+<p>
+It is however preferable to declare straightaway SET variables which are then conveniently used in-line. That is better than declaring LONGINT variables and then to use SYSTEM.GET/PUT to convert them from or to SET type variables. SYSTEM.VAL should also be avoided.
+<p>
+<li><strong><a name="direct">How</a> do I write a constant value directly to memory? 
+<br>A:</strong> 
+<pre>    PROCEDURE P; 
+    CODE {SYSTEM.i386} 
+        MOV DWORD PTR @1234H, 15 
+    END P;
+000AH: C7 05 34 12 00 00 0F 00 00 00       MOV     [4660],15
+</pre>
+This is equivalent what is done, using MS Tools, with:
+<pre>    mov dword ptr ds:[adr], imm    giving the code: C7 05 adr imm
+</pre>
+<li><strong><a name="varinit">Variable</a> initialization can be at fault. 
+<br>A:</strong> Take a look at this short procedure:
+<pre>   PROCEDURE demo( VAR a: ARRAY OF INTEGER ); 
+   VAR i: INTEGER; 
+   BEGIN 
+      (* i := 0; *) 
+      WHILE i < LEN(a) DO a[i] := 0; INC(i) END 
+   END demo;
+</pre>
+Although the initialization of "i" is missing, this procedure works on PC Oberon. On Mac Oberon it fails most times because "i" has a random value, but not because of a compiler fault.
+<p>
+On PC Oberon the whole stack frame gets cleared at procedure entry. Thus missing initializations (to zero) do not attract attention.
+<p>
+<li><strong><a name="identify">Is</a> there a portable way to identify the caller of a procedure? 
+<br>A:</strong> Since ETH Oberon does not have full-featured metaprogramming facilities in all versions, there exists no portable way. However, the following works on Native Oberon and Windows Oberon.
+<pre>MODULE Temp;
+IMPORT SYSTEM, Kernel, Out;
+PROCEDURE Identify(VAR modname: ARRAY OF CHAR; VAR pc: LONGINT); 
+VAR ebp, eip: LONGINT; m: Kernel.Module; 
+BEGIN 
+  SYSTEM.GETREG(SYSTEM.EBP, ebp); 
+  SYSTEM.GET(ebp, ebp);  (* stack frame of caller *) 
+  SYSTEM.GET(ebp+4, eip);  (* return address from caller *) 
+  m := Kernel.GetMod(eip); 
+  IF m # NIL THEN 
+    COPY(m.name, modname); pc := eip - SYSTEM.ADR(m.code[0]) 
+  ELSE 
+    modname[0] := 0X; pc := MAX(LONGINT) 
+  END 
+END Identify;
+PROCEDURE Test*; 
+VAR name: ARRAY 32 OF CHAR; pc: LONGINT; 
+BEGIN 
+  Identify(name, pc); 
+  Out.String(name); Out.String(" PC="); Out.Int(pc, 1); Out.Ln 
+END Test;
+END Temp.
+</pre>
+This gives you the calling module name and PC offset, which can be used with Compiler.Compile \f to find the calling location.
+<p>
+If you just want this for debugging, consider writing a HALT statement, which also gives a stack traceback. On Native Oberon you can use the hack HALT(MAX(INTEGER)) for a halt that produces a trap and then continues running.
+<p>
+<b>Bluebottle</b>: the following editing is required to adapt the text to Bluebottle: 
+<br>replace Kernel by AosModules 
+<br>replace Kernel.Module by AosModules.Module 
+<br>replace Kernel.GetMod by AosModules.ThisModuleByAdr
+<p>
+</ol>
+<h2>Compiler</h2>
+<ol> 
+<li><strong><a name="locate">How</a> do I locate an error in the source text? 
+<br>A:</strong> 
+<ol>  
+<li>Select the error report line in the System.Log with MR+MR clicks 
+<li>Press F1 to mark (*) the source text viewer 
+<li>Activate the [Locate] Button in the System.Log menu bar 
+</ol>
+<p>
+<li><strong><a name="zoption">Why</a> does the \z option cause the creation of a larger code? 
+<br>A:</strong> It is simpler to initialize the whole local-var block: this is done by a loop writing zero to the stack. Initializing only the pointers is more complex, because only the pointers must be (individually) initialized.
+<p>
+A worst case example:
+<pre>VAR x: ARRAY 64 OF RECORD ..... z: PTR .... END;
+Initialize all: 
+    LOAD size 
+    WHILE size > 0 
+        PUSH 0 
+        DEC size 
+    END 
+<br> 
+Initialize pointers only: 
+    MOV EAX, 0 
+    MOV offs0[EBP], EAX 
+    MOV offs1[EBP], EAX 
+&nbsp; &nbsp; &nbsp;... 
+&nbsp; &nbsp; &nbsp;MOV offs63[EBP], EAX
+</pre>
+On the other hand, it is faster to initialize only the pointers.
+<p>
+<li><strong><a name="testset">Is</a> there a test set for Oberon compilers?</li> 
+<br>A:</strong>The building of a test suite is progressing. Some tests are already available. Cfr. <a href="http://hostess.sourceforge.net/">Project Hostess Homepage</a>. 
+</ol>
+<h2>Built-in assembler</h2>
+<ol> 
+<li><strong><a name="assembler">Where</a> do I find assembler documentation? 
+<br>A:</strong> Start at <a href="native/compiler/">PC Native Oberon - Compiler</a>. Then, get some inspiration from the nicely written and informative documentation on the <a href="http://www.cs.sun.ac.za/courses/pregrad/rw252/op2_asm.html">assembler</a> used to teach a course in low-level programming by Jacques Eloff.
+<p>
+<li><strong><a name="order">Given</a> a type declaration:</strong>
+<pre>    TYPE 
+        RecDesc = RECORD 
+            ch: CHAR; 
+            val: LONGINT 
+        END;
+</pre>
+<strong>If a procedure takes a VAR parameter, say r: RecDesc, the record fields are accessed in the following manner:</strong>
+<pre>    MOV EBX, 8[EBP] 
+    MOV BYTE 0[EBX], 65            ;r.ch := 'A'; 
+    MOV DWORD 4[EBX], 0            ;r.val := 0;
+</pre>
+<strong>But, when a variable of the record type is declared locally inside a procedure, the fields are reversed:</strong>
+<pre>    PROCEDURE A; 
+        VAR r: RecType; 
+        CODE {SYSTEM.i386} 
+            MOV -8[EBP], 65       ;r.ch := 'A'; 
+            MOV -4[EBP], 0        ;r.val := 0; 
+        END A;
+</pre>
+<strong>Is there a specific reason for this? 
+<br>A:</strong> The fields are not reversed! Offset -8 is smaller address than -4. You may look at it under another perspective:
+<pre>    LEA EAX, -8[EBP]     ; load record base address 
+    MOV BYTE 0[EAX], 65   ;r.ch := 'A'; 
+    MOV DWORD 4[EAX], 0   ;r.val := 0;
+</pre>
+<li><strong><a name="cast">The</a> compiler's behavior is unusual when casting anything to BOOLEAN. For example, I will often input data from an I/O port, which is masked with a control word and the result is checked to see if TRUE or FALSE. On other compilers I am familiar with, if any bit is set in the low byte of the incoming word, when cast to type boolean, will result in TRUE. That is, any set bit yields a TRUE. I found that this does not seem to hold for the Oberon compiler. What I do now is, compare the byte to zero. This is not a problem, but I must watch for this. 
+<br>A:</strong> This behavior is consistent with Pascal, where boolean was defined as enumerated type BOOLEAN = (FALSE, TRUE), i.e. ORD(FALSE) = 0 and ORD(TRUE) = 1.
+<p>
+<li><a name="BYTE"></a>
+<pre>    VAR b: SYSTEM.BYTE; 
+    BEGIN 
+        b:= 2; 
+        IF b = 0 THEN 
+    END;
+</pre>
+<strong>I will get a compiler error at the IF line, with a message indicative of invalid operands. It works fine if I either cast b to an integer or 0 to a byte. 
+<br>A:</strong> Only assignment is defined on SYSTEM.BYTE, not comparison. For 8-bit values, it is better to use a CHAR variable, so:
+<pre>    VAR b: CHAR; 
+    BEGIN 
+       b := 2X;  (* or CHR(2) *) 
+       IF b = 0X THEN 
+       END 
+    END
+</pre>
+To convert back to INTEGER, use ORD(b).
+<p>
+<li><strong><a name="call">How</a> to call a procedure from an assembler routine? The difficulty is that the assembler allows only the use of variables and not of procedures external to the routine. 
+<br>A:</strong> Use a procedure variable as in this example:
+<pre>MODULE MyModule; 
+<br> 
+IMPORT SYSTEM, Out; 
+<br> 
+VAR P: PROCEDURE (n: LONGINT); 
+<br> 
+PROCEDURE WriteRegister32(n: LONGINT); 
+BEGIN 
+    Out.Int(n, 0); Out.Ln 
+END WriteRegister32; 
+<br> 
+PROCEDURE AsmCode; 
+CODE {SYSTEM.i386} 
+    PUSH 12345678 
+    CALL P 
+END AsmCode; 
+<br> 
+PROCEDURE Test*; 
+BEGIN 
+    AsmCode 
+END Test; 
+<br> 
+BEGIN 
+    P := WriteRegister32 
+END MyModule.
+</pre>
+<li><strong><a name="fastcast">How</a> do I cast a large number of variables very fast? I have to process large picture data in quasi-realtime, converting REAL values to INTEGER. Using ENTIER for that purpose is too slow. 
+<br>A:</strong> Use this <a href="native/compiler/asm/cast.txt">model procedure</a>.
+<p>
+<li><strong><a name="in-line">How</a> to use in-line procedures. 
+<br>A:</strong> An in-line procedure is a procedure that is not called, but textually inserted into the caller procedure. A detailed documentation on how to use them is included in Jacques Eloff's <a href="#assembler">assembler description</a>.
+<p>
+</ol>
+<p>
+<address><small> 
+22 Aug 2002 - Copyright &copy; 2002 ETH Z&uuml;rich. All rights reserved.<br> 
+E-Mail: oberon-web at inf.ethz.ch<br> 
+Homepage: <a href="http://www.ethoberon.ethz.ch/">http://www.ethoberon.ethz.ch/</a> 
+</small></address></body>
+</html>
