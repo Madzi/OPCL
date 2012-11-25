@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+<HEAD>
+<TITLE> OberonX / Operators</TITLE>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF">
+<A HREF="http://www.ethoberon.ethz.ch">Oberon</A> > <A HREF="http://www.ethoberon.ethz.ch/native/">Native</A> > <A HREF="index.html">Compiler</A> >  
+<A HREF="x.index.html">OberonX</A> > Operators
+<H2>OberonX, Operators</H2>
+<HR>
+OberonX allows the implementation of operators. An operator is defined as follows:
+<P>
+<PRE> 
+&nbsp; &nbsp; &nbsp;PROCEDURE "op" (a, b: T): Q; 
+&nbsp; &nbsp; &nbsp;BEGIN 
+&nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp;..... 
+&nbsp; &nbsp; &nbsp;END "op"; 
+</PRE>
+<P>
+The following operators can be defined:
+<UL>
+<LI> dyadic operators: +, -, *, /, DIV, MOD
+<LI> dyadic boolean operators: <, <=, >, >=, =, #, &, OR. The return type must be BOOLEAN
+<LI> monadic operators: -
+<LI> monadic boolean operators: ~. The return type must be BOOLEAN
+<LI> assignment operator: :=. The first parameter must be a VAR parameter
+</UL>
+<BR> 
+There are some restrictions on the operator definitions:
+<UL>
+<LI> one of the parameters must be declared in the same module. This is to avoid that operators override basic type operators and cause import conflicts.
+</UL>
+<HR>
+Examples:
+<P>
+<PRE> 
+&nbsp; &nbsp; &nbsp;PROCEDURE "+"* (a, b: ARRAY OF CHAR): ARRAY OF CHAR; 
+&nbsp; &nbsp; &nbsp;VAR  res: ARRAY LEN(a) + LEN(b) + 1 OF CHAR; i, j: LONGINT; 
+&nbsp; &nbsp; &nbsp;BEGIN 
+&nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp;i := 0; 
+&nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp;WHILE a[i] # 0X DO  res[i] := a[i]; INC(i)  END; 
+&nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp;j := 0; 
+&nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp;WHILE b[j] # 0X DO  res[i] := b[j]; INC(i); INC(j)  END;
+&nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp;res[i] := 0X; 
+&nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp;RETURN res 
+&nbsp; &nbsp; &nbsp;END "+"; 
+</PRE>
+<UL>
+<LI> <A HREF="examples/complex.txt">Complex</A> arithmetic (by Alan Freed)
+</UL>
+<HR>
+<ADDRESS> 
+February 23, 2000 -  
+<A HREF="mailto:reali@inf.ethz.ch">Patrik Reali</A> -  
+<A HREF="http://www.cs.inf.ethz.ch/">Institut f&uuml;r Computersysteme</A> - 
+<A HREF="http://www.ethz.ch/">ETH Z&uuml;rich</A> 
+(page created with HTML.Tool on Oberon) 
+</ADDRESS> 
+<HR>
+</BODY>
+</HTML>
