@@ -4,131 +4,133 @@ Refer to the "General ETH Oberon System Source License" contract available at: h
 (* OPT - Oberon Portable Symbol Table (front end) *)
 (* NW, RC, tk, prk *)
 
-MODULE OPT;	(* non-portable *)
-	IMPORT SYSTEM, OPS, OPM, Files;
+MODULE OPT; (* non-portable *)
 
-	CONST
-		TraceFP = FALSE;
+IMPORT
+    SYSTEM, OPS, OPM, Files;
 
-		MaxConstLen* = OPS.MaxStrLen;
-		DefMaxImport=64; DefMaxStruct=32; DefMaxReimp=32;
+CONST
+    TraceFP = FALSE;
 
-		HdPtrName* = "@ptr";
-		ObjBody = "@Body";
-		Delegate* = "@delegate";
-		HdPtrStruct* = "@pointer";
+    MaxConstLen* = OPS.MaxStrLen;
+    DefMaxImport=64; DefMaxStruct=32; DefMaxReimp=32;
 
-	(* object modes *)
-		Var = 1; VarPar = 2; Con = 3; Fld = 4; Typ = 5; LProc = 6; XProc = 7;
-		SProc = 8; CProc = 9; Mod = 11; Head = 12; TProc = 13; Alias=14;
-		Operator = 15;	(* used only in exp, when the list is created *)
+    HdPtrName* = "@ptr";
+    ObjBody = "@Body";
+    Delegate* = "@delegate";
+    HdPtrStruct* = "@pointer";
 
-	(* structure forms *)
-		Undef = 0; Byte = 1; Bool = 2; Char = 3; SInt = 4; Int = 5; LInt = 6;
-		Real = 7; LReal = 8; Set = 9; String = 10; NilTyp = 11; NoTyp = 12;
-		Pointer = 13; ProcTyp = 14; Comp = 15;
-		HInt = 16; Char16 = 17; Char32 = 18;
+    (* object modes *)
+    Var = 1; VarPar = 2; Con = 3; Fld = 4; Typ = 5; LProc = 6; XProc = 7;
+    SProc = 8; CProc = 9; Mod = 11; Head = 12; TProc = 13; Alias=14;
+    Operator = 15;	(* used only in exp, when the list is created *)
 
-		(* composite structure forms *)
-		Basic = 1; StaticArr = 2; SDynArr = 3; DynArr = 4; OpenArr = 5; Record = 6;
+    (* structure forms *)
+    Undef = 0; Byte = 1; Bool = 2; Char = 3; SInt = 4; Int = 5; LInt = 6;
+    Real = 7; LReal = 8; Set = 9; String = 10; NilTyp = 11; NoTyp = 12;
+    Pointer = 13; ProcTyp = 14; Comp = 15;
+    HInt = 16; Char16 = 17; Char32 = 18;
 
-	(* nodes classes *)
-		Nconst = 7; Ncall = 13;
+    (* composite structure forms *)
+    Basic = 1; StaticArr = 2; SDynArr = 3; DynArr = 4; OpenArr = 5; Record = 6;
 
-	(*function number*)
-		haltfn = 0; newfn = 1; absfn = 2; capfn = 3; ordfn = 4;
-		entierfn = 5; oddfn = 6; minfn = 7; maxfn = 8; chrfn = 9;
-		shortfn = 10; longfn = 11; sizefn = 12; incfn = 13; decfn = 14;
-		inclfn = 15; exclfn = 16; lenfn = 17; copyfn = 18; ashfn = 19; assertfn = 32;
+    (* nodes classes *)
+    Nconst = 7; Ncall = 13;
 
-		awaitfn = 64; lockfn = 66;
+    (*function number*)
+    haltfn = 0; newfn = 1; absfn = 2; capfn = 3; ordfn = 4;
+    entierfn = 5; oddfn = 6; minfn = 7; maxfn = 8; chrfn = 9;
+    shortfn = 10; longfn = 11; sizefn = 12; incfn = 13; decfn = 14;
+    inclfn = 15; exclfn = 16; lenfn = 17; copyfn = 18; ashfn = 19; assertfn = 32;
 
-	(*SYSTEM function number*)
-		adrfn = 20; ccfn = 21; lshfn = 22; rotfn = 23;
-		getfn = 24; putfn = 25; getrfn = 26; putrfn = 27;
-		bitfn = 28; valfn = 29; sysnewfn = 30; movefn = 31;
-		stifn = 33; clifn = 34; poutfn = 35; pinfn = 36;
-		shalt = 37;
-		get8fn = 38; get16fn = 39; get32fn = 40;
-		put8fn = 41; put16fn = 42; put32fn = 43;
-		typefn = 44;
+    awaitfn = 64; lockfn = 66;
 
-	(* module visibility of objects *)
-		internal = 0; external = 1; externalR = 2;
+    (*SYSTEM function number*)
+    adrfn = 20; ccfn = 21; lshfn = 22; rotfn = 23;
+    getfn = 24; putfn = 25; getrfn = 26; putrfn = 27;
+    bitfn = 28; valfn = 29; sysnewfn = 30; movefn = 31;
+    stifn = 33; clifn = 34; poutfn = 35; pinfn = 36;
+    shalt = 37;
+    get8fn = 38; get16fn = 39; get32fn = 40;
+    put8fn = 41; put16fn = 42; put32fn = 43;
+    typefn = 44;
 
-	(* Object flags *)
-		hasBody = 1; slNeeded = 3; protectedObj = 4; activeObj = 5; locked =6; guarded = 7; safe = 8;
-		asmProc = 7;
-		typeVisible* = 8;	(*this type can be used and allocated, because exported (though strobj is not)*)
+    (* module visibility of objects *)
+    internal = 0; external = 1; externalR = 2;
 
-		(*object trace modes*)
-		used* = 1; param* = 3;
+    (* Object flags *)
+    hasBody = 1; slNeeded = 3; protectedObj = 4; activeObj = 5; locked =6; guarded = 7; safe = 8;
+    asmProc = 7;
+    typeVisible* = 8; (*this type can be used and allocated, because exported (though strobj is not)*)
 
-	(*symbol tags*)
-		SFtypBool=01H; SFtypChar=02H;
-		SFtypChar16=03H; SFtypChar32=04H;
-		SFtypSInt=05H; SFtypInt=06H; SFtypLInt=07H; SFtypHInt=08H;
-		SFtypReal=09H; SFtypLReal=0AH; SFtypSet=0BH; SFtypString=0CH; SFtypNoTyp=0DH; SFtypNilTyp=0EH;
-		SFtypByte=0FH; SFtypptr=10H;
+    (*object trace modes*)
+    used* = 1; param* = 3;
 
-		SFlastStruct = SFtypptr;
+    (*symbol tags*)
+    SFtypBool=01H; SFtypChar=02H;
+    SFtypChar16=03H; SFtypChar32=04H;
+    SFtypSInt=05H; SFtypInt=06H; SFtypLInt=07H; SFtypHInt=08H;
+    SFtypReal=09H; SFtypLReal=0AH; SFtypSet=0BH; SFtypString=0CH; SFtypNoTyp=0DH; SFtypNilTyp=0EH;
+    SFtypByte=0FH; SFtypptr=10H;
 
-		SFmod1=11H; SFmod31=2CH; SFmodOther=2DH;
+    SFlastStruct = SFtypptr;
+
+    SFmod1=11H; SFmod31=2CH; SFmodOther=2DH;
 (*
-		SFtypBool=01H; SFtypChar=02H; SFtypSInt=03H; SFtypInt=04H; SFtypLInt=05H; SFtypHInt=06H;
-		SFtypReal=07H; SFtypLReal=08H; SFtypSet=09H; SFtypString=0AH; SFtypNoTyp=0BH; SFtypNilTyp=0CH;
-		SFtypByte=0DH; SFtypptr=0EH;
-		SFlastStruct = 0EH;
-		SFmod1=0FH; SFmod31=2CH; SFmodOther=2DH;
+    SFtypBool=01H; SFtypChar=02H; SFtypSInt=03H; SFtypInt=04H; SFtypLInt=05H; SFtypHInt=06H;
+    SFtypReal=07H; SFtypLReal=08H; SFtypSet=09H; SFtypString=0AH; SFtypNoTyp=0BH; SFtypNilTyp=0CH;
+    SFtypByte=0DH; SFtypptr=0EH;
+    SFlastStruct = 0EH;
+    SFmod1=0FH; SFmod31=2CH; SFmodOther=2DH;
 *)
-		SFtypOpenArr=2EH; SFtypDynArr=2FH; SFtypArray=30H; SFtypPointer=31H; SFtypRecord=32H; SFtypProcTyp=33H;
-		SFsysflag=34H; SFinvisible=35H; SFreadonly=36H;
-		SFobjflag = 37H;	(*duplicate, used only for fields, not element of first(Structure) *)
-		SFconst=37H; SFvar=38H;
-		SFlproc=39H; SFxproc=3AH; SFoperator=3BH; SFtproc=3CH;
-		SFcproc=SFtproc;	(* same tag, always used in different contexts *)
-		SFalias=3DH; SFtyp=3EH; SFend=3FH;
+    SFtypOpenArr=2EH; SFtypDynArr=2FH; SFtypArray=30H; SFtypPointer=31H; SFtypRecord=32H; SFtypProcTyp=33H;
+    SFsysflag=34H; SFinvisible=35H; SFreadonly=36H;
+    SFobjflag = 37H;	(*duplicate, used only for fields, not element of first(Structure) *)
+    SFconst=37H; SFvar=38H;
+    SFlproc=39H; SFxproc=3AH; SFoperator=3BH; SFtproc=3CH;
+    SFcproc=SFtproc;	(* same tag, always used in different contexts *)
+    SFalias=3DH; SFtyp=3EH; SFend=3FH;
 
-	(* history *)
-		inserted = 0;	same = 1;	removed = 3;	modified = 4;
+    (* history *)
+    inserted = 0;	same = 1;	removed = 3;	modified = 4;
 
 
-	TYPE
-		Const* = POINTER TO ConstDesc;
-		Object* = POINTER TO ObjDesc;
-		Module*=POINTER TO ModDesc;
-		Struct* = POINTER TO StrDesc;
-		Node* = POINTER TO NodeDesc;
-		ConstExt* = POINTER TO OPS.String;
+TYPE
+    Const* = POINTER TO ConstDesc;
+    Object* = POINTER TO ObjDesc;
+    Module*=POINTER TO ModDesc;
+    Struct* = POINTER TO StrDesc;
+    Node* = POINTER TO NodeDesc;
+    ConstExt* = POINTER TO OPS.String;
 
-		ReadStringProc = PROCEDURE (VAR R: Files.Rider; VAR string: ARRAY OF CHAR);
+    ReadStringProc = PROCEDURE (VAR R: Files.Rider; VAR string: ARRAY OF CHAR);
 
-		ConstDesc* = RECORD
-			ext*: ConstExt;	(* string or code for code proc *)
-			intval*: LONGINT;	(* constant value or adr, proc par size, text position or least case label *)
-			intval2*: LONGINT;	(* string length, proc var size or larger case label *)
-			setval*: SET;	(* constant value, procedure body present or "ELSE" present in case *)
-			realval*: LONGREAL;	(* real or longreal constant value *)
-			errpos*: OPM.TextPos;	(* current text position in source file *)
-		END;
+    ConstDesc* = RECORD
+        ext*: ConstExt;	(* string or code for code proc *)
+        intval*: LONGINT;	(* constant value or adr, proc par size, text position or least case label *)
+        intval2*: LONGINT;	(* string length, proc var size or larger case label *)
+        setval*: SET;	(* constant value, procedure body present or "ELSE" present in case *)
+        realval*: LONGREAL;	(* real or longreal constant value *)
+        errpos*: OPM.TextPos;	(* current text position in source file *)
+    END;
 
-		ObjDesc* = RECORD
-			left*, right*, link*, scope*: Object;
-			myscope*: Object;
-			link2*, old: Object;		(* <- old used symbol file comparison *)
-			prio*, sysflag*: SHORTINT;
-			code*: Node;
-			name*: OPS.Name;
-			leaf*: BOOLEAN;
-			mode*, mnolev*: LONGINT;	(* mnolev < 0 -> mno = -mnolev *)
-			vis*: SHORTINT;	(* 0: internal; 1: external; 2: externalR *)
-			typ*: Struct;
-			conval*: Const;
-			adr*, linkadr*: LONGINT;
-			nxtobj*, sibling*: Object; par: BOOLEAN; inited*, used*: BOOLEAN; fp*: LONGINT; history*: SHORTINT;
-			txtpos*, errpos*: OPM.TextPos;
-			flag*: SET;
-		END ;
+    ObjDesc* = RECORD
+        left*, right*, link*, scope*: Object;
+        myscope*: Object;
+        link2*, old: Object;		(* <- old used symbol file comparison *)
+        prio*, sysflag*: SHORTINT;
+        code*: Node;
+        name*: OPS.Name;
+        leaf*: BOOLEAN;
+        mode*, mnolev*: LONGINT;	(* mnolev < 0 -> mno = -mnolev *)
+        vis*: SHORTINT;	(* 0: internal; 1: external; 2: externalR *)
+        typ*: Struct;
+        conval*: Const;
+        adr*, linkadr*: LONGINT;
+        nxtobj*, sibling*: Object; par: BOOLEAN; inited*, used*: BOOLEAN; fp*: LONGINT; history*: SHORTINT;
+        txtpos*, errpos*: OPM.TextPos;
+        flag*: SET;
+    END ;
 
 (*
   mode   link
@@ -140,92 +142,103 @@ MODULE OPT;	(* non-portable *)
 
 *)
 
-		StructArr=POINTER TO ARRAY OF Struct;
-		ModArr=POINTER TO ARRAY OF Module;
-		ModDesc*=RECORD (ObjDesc)
-			publics*: Object; directImp*: BOOLEAN;
-			nofimp: INTEGER; import: ModArr;
-			nofstr: INTEGER; struct: StructArr;
-			nofreimp: INTEGER; reimp: StructArr;
-		END;
+    StructArr=POINTER TO ARRAY OF Struct;
+    ModArr=POINTER TO ARRAY OF Module;
+    ModDesc*=RECORD (ObjDesc)
+        publics*: Object; directImp*: BOOLEAN;
+        nofimp: INTEGER; import: ModArr;
+        nofstr: INTEGER; struct: StructArr;
+        nofreimp: INTEGER; reimp: StructArr;
+    END;
 
-		StrDesc* = RECORD
-			form*, comp*: SHORTINT;
-			mno*: LONGINT;
-			extlev*: SHORTINT;
-			ref*: INTEGER;  align*, sysflag*: SHORTINT;
-			rectest*, n*, size*, tdadr*, offset*: LONGINT; txtpos*, txtpos2*: OPM.TextPos;
-			BaseTyp*: Struct;
-			link*, strobj*: Object; fpdone*, sref*, oref*: INTEGER;
-			pvused*, pbused*: BOOLEAN; fp*, pvfp*, pbfp*: LONGINT;
-			incomplete*: BOOLEAN;	(* structure not checked for consistency *)
-			ptr*: Struct;
-		END ;
+    StrDesc* = RECORD
+        form*, comp*: SHORTINT;
+        mno*: LONGINT;
+        extlev*: SHORTINT;
+        ref*: INTEGER;  align*, sysflag*: SHORTINT;
+        rectest*, n*, size*, tdadr*, offset*: LONGINT; txtpos*, txtpos2*: OPM.TextPos;
+        BaseTyp*: Struct;
+        link*, strobj*: Object; fpdone*, sref*, oref*: INTEGER;
+        pvused*, pbused*: BOOLEAN; fp*, pvfp*, pbfp*: LONGINT;
+        incomplete*: BOOLEAN;	(* structure not checked for consistency *)
+        ptr*: Struct;
+    END ;
 
-		NodeDesc* = RECORD
-			left*, right*, link*: Node;
-			class*, subcl*: SHORTINT;
-			readonly*: BOOLEAN;
-			typ*: Struct;
-			obj*: Object;
-			conval*: Const;
-			global*: BOOLEAN; up*, down*: Node; ref*: LONGINT; flag*, subflg*: SHORTINT	(*Backend*)
-		END ;
+    NodeDesc* = RECORD
+        left*, right*, link*: Node;
+        class*, subcl*: SHORTINT;
+        readonly*: BOOLEAN;
+        typ*: Struct;
+        obj*: Object;
+        conval*: Const;
+        global*: BOOLEAN; up*, down*: Node; ref*: LONGINT; flag*, subflg*: SHORTINT	(*Backend*)
+    END ;
 
-	VAR
-		topScope*, objects*: Object;
-		undftyp*, bytetyp*, booltyp*, chartyp*, sinttyp*, inttyp*, linttyp*, hinttyp*,
-		realtyp*, lrltyp*, settyp*, stringtyp*, niltyp*, notyp*, ptrtyp*: Struct;
-		char16typ, char32typ: Struct;
+VAR
+    topScope*, objects*: Object;
+    undftyp*, bytetyp*, booltyp*, chartyp*, sinttyp*, inttyp*, linttyp*, hinttyp*,
+    realtyp*, lrltyp*, settyp*, stringtyp*, niltyp*, notyp*, ptrtyp*: Struct;
+    char16typ, char32typ: Struct;
 
-		SYSimported*: BOOLEAN;
-		nofmod*: LONGINT; modules*: ModArr;	(*global for each module being compiled*)
-		nofemod: LONGINT; emodules: ModArr; modNo*: INTEGER;	(*global for each module being compiled*)
-		universe, syslink: Object;
+    SYSimported*: BOOLEAN;
+    nofmod*: LONGINT; modules*: ModArr;	(*global for each module being compiled*)
+    nofemod: LONGINT; emodules: ModArr; modNo*: INTEGER;	(*global for each module being compiled*)
+    universe, syslink: Object;
 
-		strucForm: ARRAY SFtypProcTyp+1 OF SHORTINT;	(*forms of structures*)
-		strucComp: ARRAY SFtypProcTyp+1 OF SHORTINT;	(*forms of structures*)
-		predefStruct: ARRAY SFlastStruct+1 OF Struct;	(*predefined types*)
-		strucFormSF: ARRAY Comp+1 OF SHORTINT;	(*forms of structures*)
-		strucCompSF: ARRAY Comp+1 OF SHORTINT;	(*forms of structures*)
+    strucForm: ARRAY SFtypProcTyp+1 OF SHORTINT;	(*forms of structures*)
+    strucComp: ARRAY SFtypProcTyp+1 OF SHORTINT;	(*forms of structures*)
+    predefStruct: ARRAY SFlastStruct+1 OF Struct;	(*predefined types*)
+    strucFormSF: ARRAY Comp+1 OF SHORTINT;	(*forms of structures*)
+    strucCompSF: ARRAY Comp+1 OF SHORTINT;	(*forms of structures*)
 
-		export: BOOLEAN; exp: ARRAY Operator+1 OF Object; nofstruc: INTEGER;
-		newSF, extSF, symNew, symExtended, sfpresent, impSelf, expGlobal: BOOLEAN;
-		typSize*: PROCEDURE (typ: Struct; allocDesc: BOOLEAN);
-		ToBeFixed*: Struct;
+    export: BOOLEAN; exp: ARRAY Operator+1 OF Object; nofstruc: INTEGER;
+    newSF, extSF, symNew, symExtended, sfpresent, impSelf, expGlobal: BOOLEAN;
+    typSize*: PROCEDURE (typ: Struct; allocDesc: BOOLEAN);
+    ToBeFixed*: Struct;
 
-	PROCEDURE err(n: INTEGER);
-	BEGIN OPM.err(n)
-	END err;
+PROCEDURE err(n: INTEGER);
+BEGIN OPM.err(n)
+END err;
 
-	PROCEDURE Close*;	(* garbage collection *)
-		VAR i: INTEGER;
-	BEGIN	topScope:=NIL; objects:=NIL;
-		i:=0; WHILE i<LEN(modules^) DO modules[i]:=NIL; INC(i) END;
-		i:=0; WHILE i<LEN(emodules^) DO emodules[i]:=NIL; INC(i) END;
-		i:=0; WHILE i<Alias+1 DO exp[i]:=NIL; INC(i) END;
-		nofmod:=0; nofemod:=0;
-	END Close;
+PROCEDURE Close*;	(* garbage collection *)
+VAR
+    i: INTEGER;
+BEGIN
+    topScope:=NIL;
+    objects:=NIL;
+    i:=0; WHILE i<LEN(modules^) DO modules[i]:=NIL; INC(i) END;
+    i:=0; WHILE i<LEN(emodules^) DO emodules[i]:=NIL; INC(i) END;
+    i:=0; WHILE i<Alias+1 DO exp[i]:=NIL; INC(i) END;
+    nofmod:=0; nofemod:=0;
+END Close;
 
-	PROCEDURE NewMod(): Module;
-		VAR M: Module;
-	BEGIN
-		NEW(M);
-		NEW(M.struct, DefMaxStruct);
-		NEW(M.reimp, DefMaxReimp);
-		NEW(M.import, DefMaxImport);
-		RETURN M
-	END NewMod;
+PROCEDURE NewMod(): Module;
+VAR
+    M: Module;
+BEGIN
+    NEW(M);
+    NEW(M.struct, DefMaxStruct);
+    NEW(M.reimp, DefMaxReimp);
+    NEW(M.import, DefMaxImport);
+    RETURN M
+END NewMod;
 
-	PROCEDURE NewConst*(): Const;
-		VAR const: Const;
-	BEGIN NEW(const);  RETURN const
-	END NewConst;
+PROCEDURE NewConst*(): Const;
+VAR
+    const: Const;
+BEGIN
+    NEW(const);  
+    RETURN const
+END NewConst;
 
-	PROCEDURE NewObj*(): Object;
-		VAR obj: Object;
-	BEGIN NEW(obj);  obj.txtpos := OPM.errpos;  RETURN obj
-	END NewObj;
+PROCEDURE NewObj*(): Object;
+VAR
+    obj: Object;
+BEGIN
+    NEW(obj);
+    obj.txtpos := OPM.errpos; 
+    RETURN obj
+END NewObj;
 
 	PROCEDURE NewStr*(form, comp: SHORTINT): Struct;
 		VAR typ: Struct;
@@ -1356,43 +1369,80 @@ MODULE OPT;	(* non-portable *)
 
 (* Initialisation *)
 
-	PROCEDURE InitStruct(VAR typ: Struct; form, sref: SHORTINT);
-	BEGIN typ := NewStr(form, Basic); typ^.ref := form; typ^.size := OPM.ByteSize; typ^.sref:=sref;
-		predefStruct[sref]:=typ; typ^.tdadr := 0; typ^.offset := 0; typ^.strobj := NewObj();
-		typ.fpdone:=-1; typ.pvfp:=form; typ.pbfp:=form; typ.fp:=form;
-	END InitStruct;
+PROCEDURE InitStruct(VAR typ: Struct; form, sref: SHORTINT);
+BEGIN
+    typ := NewStr(form, Basic);
+    typ^.ref := form;
+    typ^.size := OPM.ByteSize;
+    typ^.sref:=sref;
+    predefStruct[sref]:=typ;
+    typ^.tdadr := 0;
+    typ^.offset := 0;
+    typ^.strobj := NewObj();
+    typ.fpdone:=-1;
+    typ.pvfp:=form;
+    typ.pbfp:=form;
+    typ.fp:=form;
+END InitStruct;
 
-	PROCEDURE EnterIntConst(name: ARRAY OF CHAR; value: LONGINT);
-		VAR obj: Object;
-	BEGIN Insert(name, obj); obj^.conval := NewConst();
-		obj^.mode := Con; obj^.typ := sinttyp; obj^.conval^.intval := value
-	END EnterIntConst;
+PROCEDURE EnterIntConst(name: ARRAY OF CHAR; value: LONGINT);
+VAR
+    obj: Object;
+BEGIN
+    Insert(name, obj);
+    obj^.conval := NewConst();
+    obj^.mode := Con;
+    obj^.typ := sinttyp;
+    obj^.conval^.intval := value
+END EnterIntConst;
 
-	PROCEDURE EnterTyp(name: ARRAY OF CHAR; form: SHORTINT; size: INTEGER; VAR res: Struct; sref: SHORTINT);
-		VAR obj: Object; typ: Struct;
-	BEGIN Insert(name, obj);
-		typ := NewStr(form, Basic); obj^.mode := Typ; obj^.typ := typ; obj^.vis := external; typ.sref:=sref; predefStruct[sref]:=typ;
-		typ^.strobj := obj; typ^.size := size; typ^.tdadr := 0; typ^.offset := 0; typ^.ref := form; res := typ;
-		typ.fpdone:=-1; typ.pvfp:=size; typ.pbfp:=form; typ.fp:=form
-	END EnterTyp;
+PROCEDURE EnterTyp(name: ARRAY OF CHAR; form: SHORTINT; size: INTEGER; VAR res: Struct; sref: SHORTINT);
+VAR
+    obj: Object;
+    typ: Struct;
+BEGIN Insert(name, obj);
+    typ := NewStr(form, Basic);
+    obj^.mode := Typ;
+    obj^.typ := typ;
+    obj^.vis := external;
+    typ.sref:=sref;
+    predefStruct[sref]:=typ;
+    typ^.strobj := obj;
+    typ^.size := size;
+    typ^.tdadr := 0;
+    typ^.offset := 0;
+    typ^.ref := form;
+    res := typ;
+    typ.fpdone := -1;
+    typ.pvfp := size;
+    typ.pbfp := form;
+    typ.fp := form
+END EnterTyp;
 
-	PROCEDURE EnterTypAlias(name: ARRAY OF CHAR; typ: Struct);
-		VAR obj: Object;
-	BEGIN Insert(name, obj);
-		obj^.mode := Typ; obj^.typ := typ; obj^.vis := external
-	END EnterTypAlias;
+PROCEDURE EnterTypAlias(name: ARRAY OF CHAR; typ: Struct);
+VAR
+    obj: Object;
+BEGIN Insert(name, obj);
+    obj^.mode := Typ; obj^.typ := typ; obj^.vis := external
+END EnterTypAlias;
 
-	PROCEDURE EnterProc(name: ARRAY OF CHAR; num: INTEGER);
-		VAR obj: Object;
-	BEGIN Insert(name, obj);
-		obj.mode := SProc; obj.typ := notyp; obj.adr := num
-	END EnterProc;
+PROCEDURE EnterProc(name: ARRAY OF CHAR; num: INTEGER);
+VAR
+    obj: Object;
+BEGIN Insert(name, obj);
+    obj.mode := SProc; obj.typ := notyp; obj.adr := num
+END EnterProc;
 
-	PROCEDURE EnterPtr(name: ARRAY OF CHAR; num: LONGINT);
-		VAR obj: Object;
-	BEGIN Insert(name, obj);
-		obj^.mode := Var; obj^.typ := ptrtyp; obj^.adr := num; obj^.linkadr := num; obj^.mnolev := 0
-	END EnterPtr;
+PROCEDURE EnterPtr(name: ARRAY OF CHAR; num: LONGINT);
+VAR
+    obj: Object;
+BEGIN Insert(name, obj);
+    obj^.mode := Var;
+    obj^.typ := ptrtyp;
+    obj^.adr := num;
+    obj^.linkadr := num;
+    obj^.mnolev := 0
+END EnterPtr;
 
 
 BEGIN
@@ -1403,84 +1453,134 @@ BEGIN
 	InitStruct(notyp, NoTyp, SFtypNoTyp); InitStruct(stringtyp, String, SFtypString); InitStruct(niltyp, NilTyp, SFtypNilTyp);
 	undftyp^.BaseTyp := undftyp;
 
-	(*initialization of module SYSTEM*)
-	EnterTyp("BYTE", Byte, OPM.ByteSize, bytetyp, SFtypByte);
-	EnterTyp("PTR", Pointer, OPM.PointerSize, ptrtyp, SFtypptr);
-	EnterProc("ADR", adrfn); EnterProc("CC", ccfn);
-	EnterProc("LSH", lshfn); EnterProc("ROT", rotfn);
-	EnterProc("GET", getfn); EnterProc("PUT", putfn);
-	EnterProc("GETREG", getrfn); EnterProc("PUTREG", putrfn);
-	EnterProc("BIT", bitfn); EnterProc("VAL", valfn);
-	EnterProc("NEW", sysnewfn); EnterProc("MOVE", movefn);
-	EnterProc("PORTOUT", poutfn); EnterProc("PORTIN", pinfn);
-	EnterProc("STI", stifn); EnterProc("CLI", clifn);
-	EnterProc("HALT", shalt);
-	EnterProc("GET8", get8fn); EnterProc("GET16", get16fn); EnterProc("GET32", get32fn);
-	EnterProc("PUT8", put8fn); EnterProc("PUT16", put16fn); EnterProc("PUT32", put32fn);
-	EnterProc("TYPECODE", typefn);
+    (*initialization of module SYSTEM*)
+    EnterTyp("BYTE", Byte, OPM.ByteSize, bytetyp, SFtypByte);
+    EnterTyp("PTR", Pointer,
+    OPM.PointerSize, ptrtyp, SFtypptr);
+    EnterProc("ADR", adrfn);
+    EnterProc("CC", ccfn);
+    EnterProc("LSH", lshfn);
+    EnterProc("ROT", rotfn);
+    EnterProc("GET", getfn);
+    EnterProc("PUT", putfn);
+    EnterProc("GETREG", getrfn);
+    EnterProc("PUTREG", putrfn);
+    EnterProc("BIT", bitfn);
+    EnterProc("VAL", valfn);
+    EnterProc("NEW", sysnewfn);
+    EnterProc("MOVE", movefn);
+    EnterProc("PORTOUT", poutfn);
+    EnterProc("PORTIN", pinfn);
+    EnterProc("STI", stifn);
+    EnterProc("CLI", clifn);
+    EnterProc("HALT", shalt);
+    EnterProc("GET8", get8fn);
+    EnterProc("GET16", get16fn);
+    EnterProc("GET32", get32fn);
+    EnterProc("PUT8", put8fn);
+    EnterProc("PUT16", put16fn);
+    EnterProc("PUT32", put32fn);
+    EnterProc("TYPECODE", typefn);
 
-	syslink := topScope.right; universe := topScope; topScope.right := NIL;
+    syslink := topScope.right;
+    universe := topScope;
+    topScope.right := NIL;
 
-	EnterTyp("CHAR", Char, OPM.CharSize, chartyp, SFtypChar);
-	EnterTyp("SET", Set, OPM.SetSize, settyp, SFtypSet);
-	EnterTyp("REAL", Real, OPM.RealSize, realtyp, SFtypReal);
-	EnterTyp("INTEGER", Int, OPM.IntSize, inttyp, SFtypInt);
-	EnterTyp("LONGINT",  LInt, OPM.LIntSize, linttyp, SFtypLInt);
-	EnterTyp("HUGEINT",  HInt, OPM.HIntSize, hinttyp, SFtypHInt);
-	EnterTyp("LONGREAL", LReal, OPM.LRealSize, lrltyp, SFtypLReal);
-	EnterTyp("SHORTINT", SInt, OPM.SIntSize, sinttyp, SFtypSInt);
-	EnterTyp("BOOLEAN", Bool, OPM.BoolSize, booltyp, SFtypBool);
+    EnterTyp("CHAR", Char, OPM.CharSize, chartyp, SFtypChar);
+    EnterTyp("SET", Set, OPM.SetSize, settyp, SFtypSet);
+    EnterTyp("REAL", Real, OPM.RealSize, realtyp, SFtypReal);
+    EnterTyp("INTEGER", Int, OPM.IntSize, inttyp, SFtypInt);
+    EnterTyp("LONGINT",  LInt, OPM.LIntSize, linttyp, SFtypLInt);
+    EnterTyp("HUGEINT",  HInt, OPM.HIntSize, hinttyp, SFtypHInt);
+    EnterTyp("LONGREAL", LReal, OPM.LRealSize, lrltyp, SFtypLReal);
+    EnterTyp("SHORTINT", SInt, OPM.SIntSize, sinttyp, SFtypSInt);
+    EnterTyp("BOOLEAN", Bool, OPM.BoolSize, booltyp, SFtypBool);
 (*
-	EnterTyp("CHAR16", Char16, OPM.IntSize, char16typ, SFtypChar16);
-	EnterTyp("CHAR32", Char32, OPM.LIntSize, char32typ, SFtypChar32);
+    EnterTyp("CHAR16", Char16, OPM.IntSize, char16typ, SFtypChar16);
+    EnterTyp("CHAR32", Char32, OPM.LIntSize, char32typ, SFtypChar32);
 *)
-	predefStruct[SFtypChar16] := notyp;
-	predefStruct[SFtypChar32] := notyp;
-	EnterTypAlias("PTR",  ptrtyp);
-	EnterTypAlias("ANY",  ptrtyp);
+    predefStruct[SFtypChar16] := notyp;
+    predefStruct[SFtypChar32] := notyp;
+    EnterTypAlias("PTR",  ptrtyp);
+    EnterTypAlias("ANY",  ptrtyp);
 
-	universe := topScope^.right; topScope^.right := syslink;		(*add to SYSTEM*)
-	EnterIntConst("EAX", 8); EnterIntConst("ECX", 9);
-	EnterIntConst("EDX", 10); EnterIntConst("EBX", 11);
-	EnterIntConst("ESP", 12); EnterIntConst("EBP", 13);
-	EnterIntConst("ESI", 14); EnterIntConst("EDI", 15);
+    universe := topScope^.right;
+    topScope^.right := syslink; (*add to SYSTEM*)
+    EnterIntConst("EAX", 8);
+    EnterIntConst("ECX", 9);
+    EnterIntConst("EDX", 10);
+    EnterIntConst("EBX", 11);
+    EnterIntConst("ESP", 12);
+    EnterIntConst("EBP", 13);
+    EnterIntConst("ESI", 14);
+    EnterIntConst("EDI", 15);
 
-	EnterIntConst("AX", 16); EnterIntConst("CX", 17);
-	EnterIntConst("DX", 18); EnterIntConst("BX", 19);
-	EnterIntConst("SP", 20); EnterIntConst("BP", 21);
-	EnterIntConst("SI", 22); EnterIntConst("DI", 23);
+    EnterIntConst("AX", 16);
+    EnterIntConst("CX", 17);
+    EnterIntConst("DX", 18);
+    EnterIntConst("BX", 19);
+    EnterIntConst("SP", 20);
+    EnterIntConst("BP", 21);
+    EnterIntConst("SI", 22);
+    EnterIntConst("DI", 23);
 
-	EnterIntConst("AL", 24); EnterIntConst("CL", 25);
-	EnterIntConst("DL", 26); EnterIntConst("BL", 27);
-	EnterIntConst("AH", 28); EnterIntConst("CH", 29);
-	EnterIntConst("DH", 30); EnterIntConst("BH", 31);
-	topScope^.right := universe; universe := topScope;
+    EnterIntConst("AL", 24);
+    EnterIntConst("CL", 25);
+    EnterIntConst("DL", 26);
+    EnterIntConst("BL", 27);
+    EnterIntConst("AH", 28);
+    EnterIntConst("CH", 29);
+    EnterIntConst("DH", 30);
+    EnterIntConst("BH", 31);
+    topScope^.right := universe;
+    universe := topScope;
 
-	EnterProc("HALT", haltfn); EnterProc("NEW", newfn);
-	EnterProc("ABS", absfn); EnterProc("CAP", capfn);
-	EnterProc("ORD", ordfn); EnterProc("ENTIER", entierfn);
-	EnterProc("ODD", oddfn); EnterProc("MIN", minfn);
-	EnterProc("MAX", maxfn); EnterProc("CHR", chrfn);
-	EnterProc("SHORT", shortfn); EnterProc("LONG", longfn);
-	EnterProc("SIZE", sizefn); EnterProc("INC", incfn);
-	EnterProc("DEC", decfn); EnterProc("INCL", inclfn); EnterProc("EXCL", exclfn);
-	EnterProc("LEN", lenfn);EnterProc("COPY", copyfn);
-	EnterProc("ASH", ashfn);EnterProc("ASSERT", assertfn);
+    EnterProc("HALT", haltfn);
+    EnterProc("NEW", newfn);
+    EnterProc("ABS", absfn);
+    EnterProc("CAP", capfn);
+    EnterProc("ORD", ordfn);
+    EnterProc("ENTIER", entierfn);
+    EnterProc("ODD", oddfn);
+    EnterProc("MIN", minfn);
+    EnterProc("MAX", maxfn);
+    EnterProc("CHR", chrfn);
+    EnterProc("SHORT", shortfn);
+    EnterProc("LONG", longfn);
+    EnterProc("SIZE", sizefn);
+    EnterProc("INC", incfn);
+    EnterProc("DEC", decfn);
+    EnterProc("INCL", inclfn);
+    EnterProc("EXCL", exclfn);
+    EnterProc("LEN", lenfn);
+    EnterProc("COPY", copyfn);
+    EnterProc("ASH", ashfn);
+    EnterProc("ASSERT", assertfn);
 
-	EnterProc("AWAIT", awaitfn);
+    EnterProc("AWAIT", awaitfn);
 
-	EnterPtr("@SELF", 0H);	(* <- Sentinel for the search (it must stop here!! *)
-	EnterPtr("SELF", 0H);
+    EnterPtr("@SELF", 0H);	(* <- Sentinel for the search (it must stop here!! *)
+    EnterPtr("SELF", 0H);
 
-	strucForm[SFtypPointer]:=Pointer; strucForm[SFtypRecord]:=Comp; strucForm[SFtypProcTyp]:=ProcTyp;
-	strucForm[SFtypDynArr]:=Comp; strucForm[SFtypArray]:=Comp;
-	strucForm[SFtypOpenArr]:=Comp;
-	strucComp[SFtypPointer]:=Basic; strucComp[SFtypRecord]:=Record; strucComp[SFtypProcTyp]:=Basic;
-	strucComp[SFtypDynArr]:=DynArr; strucComp[SFtypArray]:=StaticArr;
-	strucComp[SFtypOpenArr]:=OpenArr;
-	strucFormSF[Pointer]:=SFtypPointer; strucFormSF[ProcTyp]:=SFtypProcTyp;
-	strucCompSF[StaticArr]:=SFtypArray; strucCompSF[DynArr]:=SFtypDynArr; strucCompSF[Record]:=SFtypRecord;
-	strucCompSF[OpenArr]:=SFtypOpenArr;
+    strucForm[SFtypPointer]:=Pointer;
+    strucForm[SFtypRecord]:=Comp;
+    strucForm[SFtypProcTyp]:=ProcTyp;
+    strucForm[SFtypDynArr]:=Comp;
+    strucForm[SFtypArray]:=Comp;
+    strucForm[SFtypOpenArr]:=Comp;
+    strucComp[SFtypPointer]:=Basic;
+    strucComp[SFtypRecord]:=Record;
+    strucComp[SFtypProcTyp]:=Basic;
+    strucComp[SFtypDynArr]:=DynArr;
+    strucComp[SFtypArray]:=StaticArr;
+    strucComp[SFtypOpenArr]:=OpenArr;
+    strucFormSF[Pointer]:=SFtypPointer;
+    strucFormSF[ProcTyp]:=SFtypProcTyp;
+    strucCompSF[StaticArr]:=SFtypArray; 
+    strucCompSF[DynArr]:=SFtypDynArr; 
+    strucCompSF[Record]:=SFtypRecord;
+    strucCompSF[OpenArr]:=SFtypOpenArr;
 
-	NEW(ToBeFixed); ToBeFixed.incomplete := TRUE;
+    NEW(ToBeFixed); 
+    ToBeFixed.incomplete := TRUE;
 END OPT.

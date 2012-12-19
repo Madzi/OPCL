@@ -5,122 +5,129 @@ Refer to the "General ETH Oberon System Source License" contract available at: h
 (* NW, RC, JM, rml, pjm, prk *)
 
 
-MODULE OPP;	(** non-portable *)
-	IMPORT OPT, OPS, OPM, OPB, OPA;
+MODULE OPP; (** non-portable *)
 
-	CONST
-		(* numtyp values *)
-		char = 1; integer = 2; real = 3; longreal = 4;
+IMPORT
+    OPT, OPS, OPM, OPB, OPA;
 
-		(* symbol values *)
-		null = OPS.null; times = OPS.times; slash = OPS.slash; div = OPS.div;
-		mod = OPS.mod; and = OPS.and; plus = OPS.plus; minus = OPS.minus;
-		or = OPS.or; eql = OPS.eql; neq = OPS.neq; lss = OPS.lss; leq = OPS.leq;
-		gtr = OPS.gtr; geq = OPS.geq; in = OPS.in; is = OPS.is; arrow = OPS.arrow;
-		period = OPS.period; comma = OPS.comma; colon = OPS.colon; upto = OPS.upto;
-		rparen = OPS.rparen; rbrak = OPS.rbrak; rbrace = OPS.rbrace; of = OPS.of;
-		then = OPS.then; do = OPS.do; to = OPS.to; by = OPS.by; lparen = OPS.lparen;
-		lbrak = OPS.lbrak; lbrace = OPS.lbrace; not = OPS.not; becomes = OPS.becomes;
-		number = OPS.number; nil = OPS.nil; true = OPS.true; false = OPS.false;
-		string = OPS.string; ident = OPS.ident; semicolon = OPS.semicolon;
-		bar = OPS.bar; end = OPS.end; else = OPS.else; elsif = OPS.elsif;
-		until = OPS.until; if = OPS.if; case = OPS.case; while = OPS.while;
-		repeat = OPS.repeat; for = OPS.for; loop = OPS.loop; with = OPS.with;
-		exit = OPS.exit; return = OPS.return; array = OPS.array; object = OPS.object;
-		record = OPS.record; pointer = OPS.pointer; begin = OPS.begin; code = OPS.code;
-		const = OPS.const; type = OPS.type; var = OPS.var; procedure = OPS.procedure;
-		import = OPS.import; module = OPS.module; eof = OPS.eof;
+CONST
+    (* numtyp values *)
+    char = 1; integer = 2; real = 3; longreal = 4;
 
-		(* object modes *)
-		Var = 1; VarPar = 2; Con = 3; Fld = 4; Typ = 5; LProc = 6; XProc = 7;
-		SProc = 8; CProc = 9; IProc = 10; Mod = 11; Head = 12; TProc = 13;
+    (* symbol values *)
+    null = OPS.null; times = OPS.times; slash = OPS.slash; div = OPS.div;
+    mod = OPS.mod; and = OPS.and; plus = OPS.plus; minus = OPS.minus;
+    or = OPS.or; eql = OPS.eql; neq = OPS.neq; lss = OPS.lss; leq = OPS.leq;
+    gtr = OPS.gtr; geq = OPS.geq; in = OPS.in; is = OPS.is; arrow = OPS.arrow;
+    period = OPS.period; comma = OPS.comma; colon = OPS.colon; upto = OPS.upto;
+    rparen = OPS.rparen; rbrak = OPS.rbrak; rbrace = OPS.rbrace; of = OPS.of;
+    then = OPS.then; do = OPS.do; to = OPS.to; by = OPS.by; lparen = OPS.lparen;
+    lbrak = OPS.lbrak; lbrace = OPS.lbrace; not = OPS.not; becomes = OPS.becomes;
+    number = OPS.number; nil = OPS.nil; true = OPS.true; false = OPS.false;
+    string = OPS.string; ident = OPS.ident; semicolon = OPS.semicolon;
+    bar = OPS.bar; end = OPS.end; else = OPS.else; elsif = OPS.elsif;
+    until = OPS.until; if = OPS.if; case = OPS.case; while = OPS.while;
+    repeat = OPS.repeat; for = OPS.for; loop = OPS.loop; with = OPS.with;
+    exit = OPS.exit; return = OPS.return; array = OPS.array; object = OPS.object;
+    record = OPS.record; pointer = OPS.pointer; begin = OPS.begin; code = OPS.code;
+    const = OPS.const; type = OPS.type; var = OPS.var; procedure = OPS.procedure;
+    import = OPS.import; module = OPS.module; eof = OPS.eof;
 
-		(* Structure forms *)
-		Undef = 0; Byte = 1; Bool = 2; Char = 3; SInt = 4; Int = 5; LInt = 6;
-		Real = 7; LReal = 8; Set = 9; String = 10; NilTyp = 11; NoTyp = 12;
-		Pointer = 13; ProcTyp = 14; Comp = 15;
-		intSet = {SInt..LInt};
+    (* object modes *)
+    Var = 1; VarPar = 2; Con = 3; Fld = 4; Typ = 5; LProc = 6; XProc = 7;
+    SProc = 8; CProc = 9; IProc = 10; Mod = 11; Head = 12; TProc = 13;
 
-		(* composite structure forms *)
-		Basic = 1; StaticArr = 2; SDynArr = 3; DynArr = 4; OpenArr = 5; Record = 6;
-		ArraySet = {StaticArr, SDynArr, DynArr, OpenArr};
+    (* Structure forms *)
+    Undef = 0; Byte = 1; Bool = 2; Char = 3; SInt = 4; Int = 5; LInt = 6;
+    Real = 7; LReal = 8; Set = 9; String = 10; NilTyp = 11; NoTyp = 12;
+    Pointer = 13; ProcTyp = 14; Comp = 15;
+    intSet = {SInt..LInt};
 
-		(*function number*)
-		haltfn = 0; newfn = 1; sizefn = 12; incfn = 13; lenfn = 17; sysnewfn = 30;
-		awaitfn = 64;
+    (* composite structure forms *)
+    Basic = 1; StaticArr = 2; SDynArr = 3; DynArr = 4; OpenArr = 5; Record = 6;
+    ArraySet = {StaticArr, SDynArr, DynArr, OpenArr};
 
-		(* nodes classes *)
-		Nvar = 0; Nvarpar = 1; Nfield = 2; Nderef = 3; Nindex = 4; Nguard = 5; Neguard = 6;
-		Nconst = 7; Ntype = 8; Nproc = 9; Nupto = 10; Nmop = 11; Ndop = 12; Ncall = 13;
-		Ninittd = 14; Nif = 15; Ncaselse = 16; Ncasedo = 17; Nenter = 18; Nassign = 19;
-		Nifelse = 20; Ncase = 21; Nwhile = 22; Nrepeat = 23; Nloop = 24; Nexit = 25;
-		Nreturn = 26; Nwith = 27; Ntrap = 28;
-		Nassembler = 29; Ncode = 30; (* Ncode isn't a duplicate of Nret, it's used only with Nassembler *)
+    (*function number*)
+    haltfn = 0; newfn = 1; sizefn = 12; incfn = 13; lenfn = 17; sysnewfn = 30;
+    awaitfn = 64;
 
-		(* node subclasses *)
-		super = 1;
+    (* nodes classes *)
+    Nvar = 0; Nvarpar = 1; Nfield = 2; Nderef = 3; Nindex = 4; Nguard = 5; Neguard = 6;
+    Nconst = 7; Ntype = 8; Nproc = 9; Nupto = 10; Nmop = 11; Ndop = 12; Ncall = 13;
+    Ninittd = 14; Nif = 15; Ncaselse = 16; Ncasedo = 17; Nenter = 18; Nassign = 19;
+    Nifelse = 20; Ncase = 21; Nwhile = 22; Nrepeat = 23; Nloop = 24; Nexit = 25;
+    Nreturn = 26; Nwith = 27; Ntrap = 28;
+    Nassembler = 29; Ncode = 30; (* Ncode isn't a duplicate of Nret, it's used only with Nassembler *)
 
-		(* module visibility of objects *)
-		internal = 0; external = 1; externalR = 2;
+    (* node subclasses *)
+    super = 1;
 
-		(* procedure flags (conval^.setval) *)
-		hasBody = 1; isRedef = 2; slNeeded = 3; locked =6; asmProc = 7; operatorFlag = 8;
-		checkOverwriting = 31;	(*set in record.strobj when field/mth overwriting check is delayed because base is undef*)
+    (* module visibility of objects *)
+    internal = 0; external = 1; externalR = 2;
 
-		(* record flags (flags) *)
-		protectedObj = 4; activeObj = 5; safe = 8;
+    (* procedure flags (conval^.setval) *)
+    hasBody = 1; isRedef = 2; slNeeded = 3; locked =6; asmProc = 7; operatorFlag = 8;
+    checkOverwriting = 31; (*set in record.strobj when field/mth overwriting check is delayed because base is undef*)
 
-		(* sysflag *) (* ejz *)
-		notag = 1; stdcall = 2; cdecl = 3; untraced = 4; delegate = 5;
-		systemtype = 6;	(*implicitly generated type for arr of ptrs, allocate only when used*)
+    (* record flags (flags) *)
+    protectedObj = 4; activeObj = 5; safe = 8;
 
-		(* the hidden parameter for methods *)
-		HiddenSelf = "@SELF";
+    (* sysflag *) (* ejz *)
+    notag = 1; stdcall = 2; cdecl = 3; untraced = 4; delegate = 5;
+    systemtype = 6;	(*implicitly generated type for arr of ptrs, allocate only when used*)
 
-	TYPE
-		CaseTable = ARRAY OPM.MaxCases OF
-			RECORD
-				low, high: LONGINT
-			END ;
+    (* the hidden parameter for methods *)
+    HiddenSelf = "@SELF";
 
-	CONST
-		FTarget = 1; FExpr = 2; FAssign = 3; FCall = 4; FCond = 5;
-		FParam = 6; FPassExpr = 7; FReturn = 9;
+TYPE
+    CaseTable = ARRAY OPM.MaxCases OF RECORD
+        low, high: LONGINT
+    END ;
 
-	TYPE
-		FixPtr = POINTER TO FixDesc;		(* late parsing *)
-		FixDesc = RECORD
-			mode: LONGINT; scope: OPT.Object; level: SHORTINT; node: OPT.Node; stream: OPS.TokenStream; next: FixPtr
-		END;
-		TypeFix = RECORD
-			pos: OPM.TextPos; name: OPS.Name; scope: OPT.Object; level: SHORTINT;
-		END;
-		ObjFixDesc = RECORD (TypeFix)  obj: OPT.Object  END;
-		StructFixDesc = RECORD (TypeFix)  typ: OPT.Struct  END;
-		ObjCheckDesc = POINTER TO ARRAY OF RECORD  obj: OPT.Object;  level: SHORTINT  END;
+CONST
+    FTarget = 1;
+    FExpr = 2;
+    FAssign = 3;
+    FCall = 4;
+    FCond = 5;
+    FParam = 6;
+    FPassExpr = 7;
+    FReturn = 9;
+
+TYPE
+    FixPtr = POINTER TO FixDesc;		(* late parsing *)
+    FixDesc = RECORD
+        mode: LONGINT; scope: OPT.Object; level: SHORTINT; node: OPT.Node; stream: OPS.TokenStream; next: FixPtr
+    END;
+    TypeFix = RECORD
+        pos: OPM.TextPos; name: OPS.Name; scope: OPT.Object; level: SHORTINT;
+    END;
+    ObjFixDesc = RECORD (TypeFix)  obj: OPT.Object  END;
+    StructFixDesc = RECORD (TypeFix)  typ: OPT.Struct  END;
+    ObjCheckDesc = POINTER TO ARRAY OF RECORD  obj: OPT.Object;  level: SHORTINT  END;
 
 
-	VAR
-		SignOnMessage*: ARRAY 80 OF CHAR;
-		sym, level: SHORTINT;
-		LoopLevel: INTEGER;
-		TDinit, lastTDinit: OPT.Node;	(*global list of TDInit nodes*)
-		RecInit, lastRecInit: OPT.Node;	(*global list of Record Nodes (method code)*)
-		CondNodes: OPT.Node;
-		CondCount: SHORTINT;
-		UndefFlag, FixPhase: BOOLEAN;
-		UndefObj: OPT.Object;
-		scopeLock: BOOLEAN;	(*current or any parent statement block locked *)
+    VAR
+            SignOnMessage*: ARRAY 80 OF CHAR;
+            sym, level: SHORTINT;
+            LoopLevel: INTEGER;
+            TDinit, lastTDinit: OPT.Node;	(*global list of TDInit nodes*)
+            RecInit, lastRecInit: OPT.Node;	(*global list of Record Nodes (method code)*)
+            CondNodes: OPT.Node;
+            CondCount: SHORTINT;
+            UndefFlag, FixPhase: BOOLEAN;
+            UndefObj: OPT.Object;
+            scopeLock: BOOLEAN;	(*current or any parent statement block locked *)
 
-		FixList, FixLast: FixPtr;
-		ExtObj: OPT.Object;		(*for searching in the module scope*)
-		inc: OPT.Object;	(* the INC sproc, used by trace *)
-		ptrToRec: OPT.Struct;
+            FixList, FixLast: FixPtr;
+            ExtObj: OPT.Object;		(*for searching in the module scope*)
+            inc: OPT.Object;	(* the INC sproc, used by trace *)
+            ptrToRec: OPT.Struct;
 
-		ObjFix:  ARRAY 128 OF ObjFixDesc;
-		ObjCheck:  ObjCheckDesc;
-		TypFix:  ARRAY 128 OF StructFixDesc;
-		nofCheck, nofObjFix, nofTypFix: LONGINT;
+            ObjFix:  ARRAY 128 OF ObjFixDesc;
+            ObjCheck:  ObjCheckDesc;
+            TypFix:  ARRAY 128 OF StructFixDesc;
+            nofCheck, nofObjFix, nofTypFix: LONGINT;
 
 
 	PROCEDURE err(n: INTEGER);
@@ -2402,7 +2409,7 @@ OPM.LogWStr("  failed");*)
 	END Module;
 
 BEGIN
-	NEW(ObjCheck, 256);
-	SignOnMessage := "Oberon Parser (Active & X Extensions) / prk";
-	OPS.name := "INC"; OPT.Find(inc)
+    NEW(ObjCheck, 256);
+    SignOnMessage := "Oberon Parser (Active & X Extensions) / prk";
+    OPS.name := "INC"; OPT.Find(inc)
 END OPP.
