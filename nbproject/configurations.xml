@@ -1,7 +1,56 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="88">
+<configurationDescriptor version="84">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
-    <df root="." name="OPCL">
+    <df name="OPCL" root=".">
+      <df name="Bin">
+      </df>
+      <df name="Docu">
+        <df name="OberonX">
+        </df>
+      </df>
+      <df name="o2">
+        <in>OSG.mod</in>
+      </df>
+      <df name="Samples">
+      </df>
+      <df name="Src">
+      </df>
+      <df name="Test">
+        <df name="build">
+          <df name="classes">
+            <df name="ru">
+              <df name="madzi">
+                <df name="e2c">
+                  <df name="lexer">
+                  </df>
+                  <df name="tools">
+                  </df>
+                </df>
+              </df>
+            </df>
+          </df>
+        </df>
+        <df name="src">
+          <df name="ru">
+            <df name="madzi">
+              <df name="e2c">
+                <df name="lexer">
+                </df>
+                <df name="tools">
+                </df>
+              </df>
+            </df>
+          </df>
+        </df>
+      </df>
+      <df name="Tests">
+        <df name="Test #01 Mem.allocation error in OPL.AllocCaseTab">
+        </df>
+        <df name="Test #02 Big module overflows compiler&apos;s buffers">
+        </df>
+        <df name="Test #03 Conversion assert in OPC.loadAdr">
+        </df>
+      </df>
     </df>
     <logicalFolder name="ExternalFiles"
                    displayName="Важные файлы"
